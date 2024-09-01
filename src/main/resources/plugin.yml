@@ -1,0 +1,17 @@
+name: LinkCord
+author: Boulldogo
+version: 1.0.0
+api-version: 1.13
+main: fr.Boulldogo.LinkCord.Main
+description: Minecraft plugin for link discord accounts and more
+commands:
+  booster:
+    description: Command for have booster rewards
+  link:
+    description: Command for link account
+  unlink:
+    description: Command for unlink accounts from discord account
+  ilookup:
+    description: Command for know what discord account is linked with what in-game account
+  ihelp:
+    description: Help command of LinkCord plugin

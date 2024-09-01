@@ -1,0 +1,210 @@
+# Français : Préfixe affiché devant tous les messages envoyés par le plugin.
+# English: Prefix displayed before all messages sent by the plugin.
+prefix: '&7[&dLink&5Cord&7] '
+
+# Français : Si vrai, utilise le préfixe défini pour tous les messages.
+# English: If true, uses the defined prefix for all messages.
+use-prefix: true
+
+# Français : Si vrai, limite l'utilisation de certaines commandes à un canal spécifique.
+# English: If true, restricts the use of certain commands to a specific channel.
+restrict-commands-channel: false
+
+# Français : ID du canal Discord où les commandes de lien sont autorisées, utilisé si "restrict-commands-channel" est activé.
+# English: ID of the Discord channel where link commands are allowed, used if "restrict-commands-channel" is enabled.
+link-channel-id: 0000000000
+
+# Français : Si vrai, lie les permissions Minecraft avec les rôles Discord.
+# English: If true, links Minecraft permissions with Discord roles.
+link-permissions-with-discord-roles: true
+
+# Français : Longueur du code utilisé pour lier un compte Minecraft à un compte Discord.
+# English: Length of the code used to link a Minecraft account to a Discord account.
+link-code-length: 8
+
+# Français : Temps d'attente (en secondes) avant qu'une commande de récompense booster puisse être réutilisée.
+# English: Cooldown time (in seconds) before a booster reward command can be reused.
+boost-rewards-command-cooldown: 86400
+
+# Français : Si vrai, supprime les rôles liés lorsqu'un joueur dissocie son compte.
+# English: If true, removes linked roles when a player unlinks their account.
+remove-player-linked-roles-on-unlink: true
+
+# Français : ID de rôle requis pour exécuter la commande de recherche (lookup).
+# English: Role ID required to execute the lookup command.
+required-role-id-for-lookup-command: 000000000
+
+# Français : Si vrai, empêche les utilisateurs de dissocier eux-mêmes leurs comptes.
+# English: If true, prevents users from unlinking their accounts by themselves.
+disable-self-unlink: false
+
+# Français : Liste des rôles Discord associés aux permissions Minecraft.
+# English: List of Discord roles associated with Minecraft permissions.
+linked-roles:
+# Exemple / Example:
+# '0000000000':
+#     required-permission: 'linkcord.role1'
+# '0000000001':
+#     required-permission: 'linkcord.role2'
+
+# Français : Si vrai, met à jour le pseudo du joueur Minecraft avec celui de Discord lors du lien.
+# English: If true, updates the Minecraft player's username with their Discord username when linked.
+update-discord-user-username: true
+
+# Français : Commandes exécutées lorsque le joueur lie son compte pour la première fois.
+# English: Commands executed when the player links their account for the first time.
+executed-commands-when-player-first-link:
+  - give %player diamond 1
+  - eco give %player 500
+
+# Français : Commandes exécutées chaque fois que le joueur lie son compte.
+# English: Commands executed every time the player links their account.
+executed-commands-when-player-link:
+  - lp user %player permission set essentials.me
+
+# Français : Commandes exécutées lorsque le joueur dissocie son compte.
+# English: Commands executed when the player unlinks their account.
+executed-commands-when-player-unlink:
+  - lp user %player permission remove essentials.me
+
+# Français : Si vrai, active les récompenses pour les boosters Discord.
+# English: If true, enables rewards for Discord boosters.
+enable-booster-rewards: true
+
+# Français : Commandes exécutées pour récompenser les boosters Discord.
+# English: Commands executed to reward Discord boosters.
+executed-commands-for-booster-rewards:
+  - give %player diamond 10
+  - eco give %player 300
+
+# Français : Si vrai, ajoute des rôles spécifiques lorsque le joueur dissocie son compte.
+# English: If true, adds specific roles when the player unlinks their account.
+add-specific-roles-on-unlink: false
+
+# Français : Liste des rôles à ajouter au joueur lors de la dissociation de son compte.
+# English: List of roles to add to the player when unlinking their account.
+roles-to-set-on-unlink:
+  - '00000000000'
+
+# Français : Si vrai, supprime des rôles spécifiques lorsque le joueur lie son compte.
+# English: If true, removes specific roles when the player links their account.
+remove-specific-roles-on-link: false
+
+# Français : Liste des rôles à supprimer du joueur lors du lien de son compte.
+# English: List of roles to remove from the player when linking their account.
+roles-to-remove-on-link:
+  - '00000000000'
+
+messages:
+  # Français : Message affiché lorsqu'un joueur n'a pas la permission d'exécuter une commande.
+  # English: Message displayed when a player does not have permission to execute a command.
+  no-permission: '&cYou have not permission to execute this command !'
+
+  # Français : Message affiché lorsque le compte Minecraft a été correctement lié à un compte Discord.
+  # English: Message displayed when the Minecraft account has been correctly linked to a Discord account.
+  account-correctly-linked: '&aYour minecraft account was been correctly linked with the discord account %a !'
+
+  # Français : Message affiché lorsqu'un joueur essaie de lier un compte déjà associé.
+  # English: Message displayed when a player tries to link an already associated account.
+  account-already-linked: '&cThis account is already linked with a discord account ! Please unlink firstly your account for re-link it.'
+
+  # Français : Message affiché pour donner le code de liaison Discord au joueur.
+  # English: Message displayed to give the Discord link code to the player.
+  give-code: '&2Your discord link code is : %code'
+
+  # Français : Message affiché lorsque le compte Minecraft a été correctement dissocié d'un compte Discord.
+  # English: Message displayed when the Minecraft account has been correctly unlinked from a Discord account.
+  account-correctly-unlinked: '&aYou minecraft account was been correctly unlinked from your discord account !'
+
+  # Français : Message affiché lorsque le joueur essaie de dissocier un compte qui n'est pas lié.
+  # English: Message displayed when the player tries to unlink an account that is not linked.
+  account-not-linked: '&cThis account is not linked !'
+
+  # Français : Message affiché pour donner le code de dissociation Discord au joueur.
+  # English: Message displayed to give the Discord unlink code to the player.
+  unlink-give-code: '&2Your discord unlink code is : %code'
+
+  # Français : Message affiché pour expliquer l'utilisation correcte de la commande de dissociation forcée.
+  # English: Message displayed to explain the correct usage of the force unlink command.
+  usage-unlink-force: '&cCorrect usage : /unlink force <playername>'
+
+  # Français : Message affiché lorsque le nom d'utilisateur fourni est invalide ou inconnu.
+  # English: Message displayed when the provided username is invalid or unknown.
+  invalid-player: '&cError : Unknow player !'
+
+  # Français : Message indiquant que le compte Minecraft fourni a été correctement dissocié.
+  # English: Message indicating that the provided Minecraft account has been correctly unlinked.
+  account-correctly-unlinked: '&cGiven minecraft account correctly unlinked from the linked discord account !'
+
+  # Français : Message affiché lorsque le joueur n'est pas un booster Discord.
+  # English: Message displayed when the player is not a Discord booster.
+  you-are-not-a-booster: '&cYou are not a booster of the linked discord server !'
+
+  # Français : Message affiché lorsque les récompenses du booster ont été données correctement.
+  # English: Message displayed when booster rewards have been given correctly.
+  rewards-correctly-given: '&2Booster rewards correctly given ! Thanks for support the server !'
+
+  # Français : Message affiché pour indiquer le temps d'attente avant de pouvoir utiliser à nouveau la commande de récompense booster.
+  # English: Message displayed to indicate the cooldown time before using the booster reward command again.
+  booster-rewards-cooldown: '&cYou need to wait %t before using this command again.'
+
+  # Français : Message affiché lorsque les récompenses de booster sont désactivées sur le serveur.
+  # English: Message displayed when booster rewards are disabled on the server.
+  booster-rewards-disable: '&cThe booster rewards was disabled on this server.'
+
+  # Français : Message affiché pour expliquer l'utilisation correcte de la commande de recherche.
+  # English: Message displayed to explain the correct usage of the lookup command.
+  usage-lookup: '&cCorrect usage : /ilookup <nickname/discordID>'
+
+  # Français : Message affiché lorsqu'aucun compte Minecraft n'est lié à l'ID Discord donné.
+  # English: Message displayed when no Minecraft account is linked to the given Discord ID.
+  no-account-linked-with-discord-id: '&cNo account linked found with the given discord ID !'
+
+  # Français : Message affiché lorsque la dissociation automatique est désactivée sur le serveur pour des raisons de sécurité.
+  # English: Message displayed when self-unlinking is disabled on the server for security reasons.
+  self-unlink-disable: '&cFor security reason, the self unlink is disabled in this server ! Contact the staff for unlink your account.'
+
+# Français : Modèle de message utilisé pour afficher les informations de lien lors de la recherche par pseudo.
+# English: Message template used to display link information when searching by nickname.
+lookup-message-using-nickname:
+  - '&8]&7-----------------------------------&8['
+  - '&6Lookup for player %player :'
+  - '&6-> Discord Tag (Last Knowed Tag) : %discord_tag'
+  - '&6-> Discord ID : %discord_id'
+  - '&6-> Account linked at : %link_date'
+  - '&d-> Is Discord Booster (In last connection) : %is_booster'
+  - '&8]&7-----------------------------------&8['
+  
+# Français : Modèle de message utilisé pour afficher les informations de lien lors de la recherche par ID Discord.
+# English: Message template used to display link information when searching by Discord ID.
+lookup-message-using-discord-id:
+  - '&8]&7-----------------------------------&8['
+  - '&6Lookup for discord ID %discord_id :'
+  - '&6-> Discord Tag (Last Knowed Tag) : %discord_tag'
+  - '&6-> In-Game nickname : %player'
+  - '&6-> Account linked at : %link_date'
+  - '&d-> Is Discord Booster (In last connection) : %is_booster'
+  - '&8]&7-----------------------------------&8['
+  
+# Français : Lignes de texte affichées lorsque l'utilisateur tape /ihelp.
+# English: Text lines displayed when the user types /ihelp.
+help-cmds-lines:
+  - '&7----------&8[&dLink&5Cord &6- Help Menu&8]&7----------'
+  - '&6-> /ihelp &e: Shows this information menu.'
+  - '&6-> /ilookup <nickname or discord ID> &e: Research link informations about a player or a discord account'
+  - '&6-> /link &e: Command for obtain the discord account link code'
+  - '&6-> /unlink &e: Command for obtain the discord account unlink code'
+  - '&7------------------------------------------------'
+   
+discord:
+  # Français : Jeton d'authentification pour le bot Discord utilisé pour interagir avec l'API Discord.
+  # English: Authentication token for the Discord bot used to interact with the Discord API.
+  bot-token: 'TOKEN HERE'
+
+  # Français : Message d'activité affiché pour le bot Discord.
+  # English: Activity message displayed for the Discord bot.
+  activity_message: 'Link a lot of players accounts'
+
+  # Français : ID de la guilde Discord que le bot surveille et avec laquelle il interagit.
+  # English: ID of the Discord guild that the bot monitors and interacts with.
+  guild-id: 0000000000
