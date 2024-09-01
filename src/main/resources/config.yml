@@ -163,6 +163,22 @@ messages:
   # Français : Message affiché lorsque la dissociation automatique est désactivée sur le serveur pour des raisons de sécurité.
   # English: Message displayed when self-unlinking is disabled on the server for security reasons.
   self-unlink-disable: '&cFor security reason, the self unlink is disabled in this server ! Contact the staff for unlink your account.'
+  
+  # Français : Message affiché pour expliquer l'utilisation correcte de la commande de reset du cooldown de la récompenses booster.
+  # English: Message dispplayed to explain the correect usage of the command of reset cooldown of the booster rewards.
+  usage-booster: '&cCorrect usage : /booster resetcd <nickname>'
+  
+  # Français : Message affiché lorsque le joueur donné n'a pas de cooldown de la commande /booster
+  # English: Message dispplayed when the given player havnt cooldown for the /booster command.
+  player-has-not-cd: '&cThe given player havnt booster cooldown !'
+  
+  # Français : Message affiché lorsque le cooldown pour la commande /booster a bien été reset pour le joueur donné.
+  # English: Message dispplayed when the cooldown for the /booster command was correctly reset for the given player.
+  cd-correctly-reset: '&2The booster command cooldown was correctly reset for the given player !'
+  
+  # Français : Message affiché lorsque le cooldown d'un joueur est déjà expiré.
+  # English: Message dispplayed when the player cooldown was already expirated.
+  player-cd-already-expired: '&cCooldown for the given player was already expirated !'
 
 # Français : Modèle de message utilisé pour afficher les informations de lien lors de la recherche par pseudo.
 # English: Message template used to display link information when searching by nickname.

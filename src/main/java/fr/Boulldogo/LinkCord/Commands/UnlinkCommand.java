@@ -3,12 +3,14 @@ package fr.Boulldogo.LinkCord.Commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import fr.Boulldogo.LinkCord.Main;
@@ -18,7 +20,7 @@ import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
 import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
 import net.md_5.bungee.api.ChatColor;
 
-public class UnlinkCommand implements CommandExecutor {
+public class UnlinkCommand implements CommandExecutor, TabCompleter{
 	
 	private final Main plugin;
 	
@@ -35,7 +37,7 @@ public class UnlinkCommand implements CommandExecutor {
 		
     	String prefix = plugin.getConfig().getBoolean("use-prefix") ? translateString(plugin.getConfig().getString("prefix")) : "";
 		
-		Player player = (Player) sender;
+		Player player =(Player) sender;
 		
 		if(!player.hasPermission("linkcord.unlink")) {
 			player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.no-permission")));
@@ -103,18 +105,18 @@ public class UnlinkCommand implements CommandExecutor {
 			
 			List<String> executedCommands = new ArrayList<>();
 			
-	        Bukkit.getScheduler().runTask(plugin, () -> {
+	        Bukkit.getScheduler().runTask(plugin,() -> {
 	    		if(!plugin.getConfig().getStringList("executed-commands-when-player-unlink").isEmpty()) {
 	    			for(String cmd : plugin.getConfig().getStringList("executed-commands-when-player-unlink")) {
 	    				String finalCommand = cmd.replace("%player", playerName);
-	    				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + " (Due to force unlink)");
+	    				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to force unlink)");
 	    				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
 	    				executedCommands.add("/" + finalCommand);
 	    			}
 	    		}     	
 	        });
 			
-			Bukkit.getScheduler().runTask(plugin, () -> {
+			Bukkit.getScheduler().runTask(plugin,() -> {
 				DiscordUnlinkEvent event = new DiscordUnlinkEvent(playerName, executedCommands, accountName, accountUUID);
 				Bukkit.getPluginManager().callEvent(event);	
 			});
@@ -135,6 +137,31 @@ public class UnlinkCommand implements CommandExecutor {
 			return true;	
 		}
 	}
+	
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+	    List<String> completions = new ArrayList<>();
+
+	    if(!(sender instanceof Player)) {
+	        return null;
+	    }
+
+	    if(args.length == 1) {
+	        completions.add("force");
+	    } 
+
+	    else if(args.length == 2 && args[0].equalsIgnoreCase("force")) {
+	        for(Player player : Bukkit.getOnlinePlayers()) {
+	            completions.add(player.getName());
+	        }
+	    }
+
+	    return completions.stream()
+	        .filter(completion -> completion.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
+	        .collect(Collectors.toList());
+	}
+
 
     public String translateString(String s) {
     	return ChatColor.translateAlternateColorCodes('&', s);
