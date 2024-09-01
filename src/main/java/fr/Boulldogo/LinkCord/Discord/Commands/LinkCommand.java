@@ -150,7 +150,7 @@ public class LinkCommand implements SlashCommand {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(":white_check_mark: Success !");
         builder.setDescription(":paperclip: Your Discord account " + e.getMember().getAsMention() + " was correctly linked with the Minecraft account " + playerName + ".");
-        builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         
         if(plugin.getConfig().getBoolean("remove-specific-roles-on-link")) {
         	for(String roleId : plugin.getConfig().getStringList("roles-to-remove-on-link")) {
@@ -199,7 +199,7 @@ public class LinkCommand implements SlashCommand {
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Error !");
         builder.setDescription(":x: " + message);
-        builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
 
         MessageEmbed embed = builder.build();
         e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();

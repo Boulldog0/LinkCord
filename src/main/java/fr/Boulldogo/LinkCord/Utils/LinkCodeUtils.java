@@ -21,7 +21,7 @@ public class LinkCodeUtils {
 		if(playerCodes.containsKey(player)) {
 			return playerCodes.get(player);
 		} else {
-			int codeLenght = plugin.getConfig().getInt("link-code-lenght");
+			int codeLenght = plugin.getConfig().getInt("link-code-length", 8);
 			
 			StringBuilder builder = new StringBuilder();
 			

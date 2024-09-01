@@ -221,6 +221,6 @@ discord:
   # English: Activity message displayed for the Discord bot.
   activity_message: 'Link a lot of players accounts'
 
-  # Français : ID de la guilde Discord que le bot surveille et avec laquelle il interagit.
-  # English: ID of the Discord guild that the bot monitors and interacts with.
+  # Français : ID du serveur Discord que le bot surveille et avec laquelle il interagit.
+  # English: ID of the Discord server that the bot monitors and interacts with.
   guild-id: 0000000000

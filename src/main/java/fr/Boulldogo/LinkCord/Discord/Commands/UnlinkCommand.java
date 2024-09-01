@@ -61,7 +61,7 @@ public class UnlinkCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: The given code is null ! Please retry to execute this command after.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -74,7 +74,7 @@ public class UnlinkCommand implements SlashCommand {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
         		builder.setDescription(":x: You are not in the good channel for unlink your account ! Channel : " + channel.getAsMention());
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
@@ -86,7 +86,7 @@ public class UnlinkCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: The self unlink is disabled in this server ! Please contact the staff for more informations.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -101,7 +101,7 @@ public class UnlinkCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: The given code is invalid ! The code must be a valid integer !");
-    		    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -114,7 +114,7 @@ public class UnlinkCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: This code does not exists ! Please execute firstly the command /unlink in-game and stay connected.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -131,7 +131,7 @@ public class UnlinkCommand implements SlashCommand {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
         		builder.setDescription(":x: The player linked with this code is not online or not exists ! Please execute firstly the command /unlink in-game and stay connected.");
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
@@ -141,7 +141,7 @@ public class UnlinkCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: The player linked with this code is not online or not exists ! Please execute firstly the command /unlink in-game and stay connected.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -155,7 +155,7 @@ public class UnlinkCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: This player is not linked with an account !");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -185,7 +185,7 @@ public class UnlinkCommand implements SlashCommand {
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setTitle(":white_check_mark: Success !");
 		builder.setDescription(":paperclip: Your discord account " + e.getMember().getAsMention() + " was correctly unlinked from the minecraft account " + playerName + ".");
-		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
 		
 		MessageEmbed embed = builder.build();
 		

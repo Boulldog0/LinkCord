@@ -27,7 +27,7 @@ public class GithubVersion {
 
             if (isVersionOutOfDate(currentVersion, latestVersion)) {
                 plugin.getLogger().warning("New version of plugin LinkCord is available. : " + latestVersion);
-                plugin.getLogger().warning("Downloat it at : ");
+                plugin.getLogger().warning("Downloat it at : https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/");
             } else {
                 plugin.getLogger().info("LinkCord plugin is up-to-date.");
             }

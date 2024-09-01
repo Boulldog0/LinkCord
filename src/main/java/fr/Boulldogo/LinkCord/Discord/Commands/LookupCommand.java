@@ -65,7 +65,7 @@ public class LookupCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: The given role ID into the plugin configuration is wrong. Please report that to an administrator.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -77,7 +77,7 @@ public class LookupCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: You have not permission to execute this command. Required role : " + role.getAsMention());
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -89,7 +89,7 @@ public class LookupCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: Please give a discord user or a in-game nickname.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -101,7 +101,7 @@ public class LookupCommand implements SlashCommand {
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Error !");
     		builder.setDescription(":x: Please give **ONLY** a discord user **OR** a in-game nickname.");
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -117,7 +117,7 @@ public class LookupCommand implements SlashCommand {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
         		builder.setDescription(":x: Error : No linked account found with given user !");
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
@@ -133,7 +133,7 @@ public class LookupCommand implements SlashCommand {
     		builder.setTitle("Linked account found for " + user.getAsMention() + " !");
     		builder.addField("In-Game username :", uname, true);
     		builder.addField("In-Game UUID :", playerUUID.toString(), true);
-    		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
     		
     		MessageEmbed embed = builder.build();
     		
@@ -147,7 +147,7 @@ public class LookupCommand implements SlashCommand {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
         		builder.setDescription(":x: Error : No player found with the given nickname !");
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
@@ -161,7 +161,7 @@ public class LookupCommand implements SlashCommand {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
         		builder.setDescription(":x: Error : The given player doesn't have a linked account!");
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
@@ -181,7 +181,7 @@ public class LookupCommand implements SlashCommand {
         		builder.addField("Discord ID :", discordId.toString(), true);
         		builder.addField("Account linked at :", linkDate, true);
         		builder.addField("Last Registred Discord Tag :", tag, true);
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
@@ -194,7 +194,7 @@ public class LookupCommand implements SlashCommand {
         		builder.addField("Discord ID :", discordId.toString(), true);
         		builder.addField("Account linked at :", linkDate, true);
         		builder.addField("Last Registred Discord Tag :", tag, true);
-        		builder.setAuthor("LinkCord", null, "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+        		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
         		
