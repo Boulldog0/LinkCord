@@ -59,20 +59,19 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.booster-rewards-disable")));
 		        return true;
 		    }
-
-		    String cooldownPath = "boost-rewards-command-cooldown." + player.getName() + ".expire-timestamp";
+		    
+		    UUID playerUUID = player.getUniqueId();
 
 		    long currentTimestamp = Instant.now().getEpochSecond();
-		    long expireTimestamp = plugin.getConfig().getLong(cooldownPath, 0); 
-
-		    if(expireTimestamp <= currentTimestamp) {
+		    
+		    if(!ges.playerHasBoosterCooldown(playerUUID)) {
 		        int timestampToAdd = plugin.getConfig().getInt("boost-rewards-command-cooldown");
 		        long newExpireTimestamp = currentTimestamp + timestampToAdd;
-		        plugin.getConfig().set(cooldownPath, newExpireTimestamp); 
-		        plugin.saveConfig();
+		        ges.setPlayerBoosterCooldown(playerUUID, newExpireTimestamp);
 		        processBoosterRewardsGive(player);
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.rewards-correctly-given")));
 		    } else {
+		    	long expireTimestamp = Long.parseLong(ges.getTimestampBoosterForPlayer(playerUUID));
 		        long timeRemaining = expireTimestamp - currentTimestamp;
 		        String formattedTime = plugin.formatTime(timeRemaining);
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.booster-rewards-cooldown").replace("%t", formattedTime)));
@@ -110,19 +109,18 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 	            return true;
 	    	}
 	    	
-	    	if(!plugin.getConfig().contains("boost-rewards-command-cooldown." + player.getName() + ".expire-timestamp")) {
+	    	if(!ges.playerHasBoosterCooldown(playerUUId)) {
 	            player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.player-has-not-cd")));
 	            return true;
 	    	}  	
 		    long currentTimestamp = Instant.now().getEpochSecond();
 	    	
-	    	if(Integer.valueOf(plugin.getConfig().getString("boost-rewards-command-cooldown." + player.getName() + ".expire-timestamp")) < currentTimestamp) {
+	    	if(!ges.playerHasBoosterCooldown(playerUUId)) {
 	            player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.player-cd-already-expired")));
 	            return true;
 	    	}
 	    	
-	    	plugin.getConfig().set("boost-rewards-command-cooldown." + player.getName() + ".expire-timestamp", currentTimestamp);
-	    	plugin.saveConfig();
+	    	ges.setPlayerBoosterCooldown(playerUUId, currentTimestamp);
             player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.cd-correctly-reset")));
             return true;
 	    }

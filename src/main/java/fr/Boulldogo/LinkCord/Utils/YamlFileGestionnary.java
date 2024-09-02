@@ -15,15 +15,27 @@ public class YamlFileGestionnary {
     private final Main plugin;
     private final File playerFile;
     private YamlConfiguration file;
+    
+    private final File boosterFile;
+    private YamlConfiguration booster;
 
     public YamlFileGestionnary(Main plugin) {
         this.plugin = plugin;
         this.playerFile = new File(plugin.getDataFolder(), "player-datas.yml");
+        this.boosterFile = new File(plugin.getDataFolder(), "boosters.yml");
+
         checkFile();
+
         this.file = YamlConfiguration.loadConfiguration(playerFile);
+        this.booster = YamlConfiguration.loadConfiguration(boosterFile);
     }
 
+
     private void checkFile() {
+        if(!plugin.getDataFolder().exists()) {
+            plugin.getDataFolder().mkdirs();
+        }
+
         if(!playerFile.exists()) {
             try {
                 playerFile.createNewFile();
@@ -34,7 +46,19 @@ public class YamlFileGestionnary {
                 plugin.getPluginLoader().disablePlugin(plugin);
             }
         }
+        
+        if(!boosterFile.exists()) {
+            try {
+                boosterFile.createNewFile();
+                plugin.getLogger().warning("Booster file not found! The plugin automatically created one!");
+            } catch(IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().severe("Error when trying to create a new boosters data file! Plugin was disabled!");
+                plugin.getPluginLoader().disablePlugin(plugin);
+            }
+        }
     }
+
 
     private void saveFile() {
         try {
@@ -43,6 +67,45 @@ public class YamlFileGestionnary {
             plugin.getLogger().severe("Error when trying to save player data file!");
             e.printStackTrace();
         }
+    }
+
+    private void saveBoosterFile() {
+        try {
+            booster.save(boosterFile);
+        } catch(IOException e) {
+            plugin.getLogger().severe("Error when trying to save booster data file!");
+            e.printStackTrace();
+        }
+    }
+    
+    public void setPlayerBoosterCooldown(UUID playerUUID, Long expireTimestamp) {
+        String basePath = "booster-cd." + playerUUID + ".expire-timestamp";
+        
+        booster.set(basePath, expireTimestamp.toString());
+        saveBoosterFile();
+    }
+    
+    public boolean playerHasBoosterCooldown(UUID playerUUID) {
+        String basePath = "booster-cd." + playerUUID + ".expire-timestamp";
+        
+    	if(!booster.contains(basePath)) return false;
+    	
+        String timestamp = String.valueOf(Instant.now().getEpochSecond());
+        String expireTimestamp = booster.getString(basePath);
+        
+        if(Integer.valueOf(expireTimestamp) < Integer.valueOf(timestamp)) {
+        	return false;
+        } else {
+        	return true;
+        }
+    }
+    
+    public String getTimestampBoosterForPlayer(UUID playerUUID) {
+        String basePath = "booster-cd." + playerUUID + ".expire-timestamp";
+        
+    	if(!booster.contains(basePath)) return null;
+    	
+        return booster.getString(basePath);
     }
 
     public void registerDataForPlayer(UUID playerUUID, String playerName, String discordTag, String discordAccountId, boolean isBooster) {
