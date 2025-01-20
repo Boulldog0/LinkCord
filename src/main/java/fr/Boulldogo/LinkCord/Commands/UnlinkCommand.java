@@ -14,6 +14,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
 import fr.Boulldogo.LinkCord.Events.DiscordUnlinkEvent;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
@@ -112,6 +113,8 @@ public class UnlinkCommand implements CommandExecutor, TabCompleter{
 	    				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to force unlink)");
 	    				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
 	    				executedCommands.add("/" + finalCommand);
+	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountUUID);
+	    				Bukkit.getServer().getPluginManager().callEvent(event);
 	    			}
 	    		}     	
 	        });

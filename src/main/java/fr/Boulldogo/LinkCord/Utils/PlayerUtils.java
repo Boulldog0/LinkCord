@@ -1,10 +1,12 @@
 package fr.Boulldogo.LinkCord.Utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.Events.DiscordBoosterStatusChangeEvent;
 
 public class PlayerUtils {
 	
@@ -31,6 +33,15 @@ public class PlayerUtils {
 				                plugin.checkAndDeleteDiscordRole(player, finalId);
 				            }
 				        }
+				    }
+				    if(plugin.playerIsBooster(player) && !ges.playerIsBooster(player.getUniqueId())) {
+				    	ges.setPlayerBooster(player.getUniqueId(), true);
+				    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, true);
+				    	Bukkit.getServer().getPluginManager().callEvent(event);
+				    } else if(!plugin.playerIsBooster(player) && ges.playerIsBooster(player.getUniqueId())) {
+				    	ges.setPlayerBooster(player.getUniqueId(), false);
+				    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, false);
+				    	Bukkit.getServer().getPluginManager().callEvent(event);
 				    }
 				}
 			}	

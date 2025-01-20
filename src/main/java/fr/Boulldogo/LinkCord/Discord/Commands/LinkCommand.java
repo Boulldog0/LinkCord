@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import fr.Boulldogo.LinkCord.Main;
 import fr.Boulldogo.LinkCord.Discord.Interface.SlashCommand;
 import fr.Boulldogo.LinkCord.Events.DiscordLinkEvent;
+import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
 import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
@@ -125,6 +126,8 @@ public class LinkCommand implements SlashCommand {
                                     plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to first link)");
                                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
                                     executedCommands.add("/" + finalCommand);
+            	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountUUID);
+            	    				Bukkit.getServer().getPluginManager().callEvent(event);
                                 }
                             }
                         }
@@ -135,6 +138,8 @@ public class LinkCommand implements SlashCommand {
                                 plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to link)");
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
                                 executedCommands.add("/" + finalCommand);
+        	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountUUID);
+        	    				Bukkit.getServer().getPluginManager().callEvent(event);
                             }
                         }
                     });

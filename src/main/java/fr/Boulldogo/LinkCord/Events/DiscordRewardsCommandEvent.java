@@ -3,7 +3,7 @@ package fr.Boulldogo.LinkCord.Events;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class DiscordBoostRewardsEvent extends Event {
+public class DiscordRewardsCommandEvent extends Event {
 	
 	public final static HandlerList handlerList  = new HandlerList();
 	private final String playerName;
@@ -11,7 +11,7 @@ public class DiscordBoostRewardsEvent extends Event {
 	private final String discordAccount;
 	private final String discordAccountID;
 	
-	public DiscordBoostRewardsEvent(String playerName, String executedCommands, String discordAccount, String discordAccountID) {
+	public DiscordRewardsCommandEvent(String playerName, String executedCommands, String discordAccount, String discordAccountID) {
 		this.playerName = playerName;
 		this.executedCommands = executedCommands;
 		this.discordAccount = discordAccount;

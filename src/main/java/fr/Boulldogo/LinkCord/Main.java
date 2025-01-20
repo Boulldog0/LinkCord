@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 
+import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
 
 import org.bstats.bukkit.Metrics;
@@ -18,12 +19,14 @@ import fr.Boulldogo.LinkCord.Commands.LinkCommand;
 import fr.Boulldogo.LinkCord.Commands.LookupCommand;
 import fr.Boulldogo.LinkCord.Commands.UnlinkCommand;
 import fr.Boulldogo.LinkCord.Discord.DiscordBot;
-import fr.Boulldogo.LinkCord.Listeners.BaseListener;
+import fr.Boulldogo.LinkCord.Listeners.PluginListener;
 import fr.Boulldogo.LinkCord.Utils.GithubVersion;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
 import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
 import fr.Boulldogo.LinkCord.Utils.YamlUpdater;
+import fr.Boulldogo.WatchLogs.WatchLogsPlugin;
+import fr.Boulldogo.WatchLogs.API.WatchLogsAPI;
 
 public class Main extends JavaPlugin {
 	
@@ -31,6 +34,7 @@ public class Main extends JavaPlugin {
 	private YamlFileGestionnary file;
 	private DiscordBot bot;
 	private PlayerUtils playerUtils;
+	private WatchLogsAPI wlApi;
 	
 	public void onEnable() {
 		saveDefaultConfig();
@@ -69,7 +73,17 @@ public class Main extends JavaPlugin {
 			this.getPluginLoader().disablePlugin(this);
 		}
 		
-		this.getServer().getPluginManager().registerEvents(new BaseListener(this), this);
+		if(Bukkit.getPluginManager().isPluginEnabled("WatchLogs")) {
+			WatchLogsPlugin watchlogs = WatchLogsAPI.getWatchLogsPlugin();
+			wlApi = new WatchLogsAPI(watchlogs);
+			wlApi.addCustomAction(this, "linkcord-rewards-command", "Rewards Command");
+			wlApi.addCustomAction(this, "discord-role-add", "Discord Role Add");
+			wlApi.addCustomAction(this, "discord-role-remove", "Discord Role Remove");
+			wlApi.addCustomAction(this, "discord-unlink", "Discord Unlink");
+			wlApi.addCustomAction(this, "discord-link", "Discord Link");
+		}
+		
+		this.getServer().getPluginManager().registerEvents(new PluginListener(this), this);
 		this.getCommand("link").setExecutor(new LinkCommand(this));
 		this.getCommand("unlink").setExecutor(new UnlinkCommand(this));
 		this.getCommand("booster").setExecutor(new BoosterCommand(this));
@@ -109,6 +123,11 @@ public class Main extends JavaPlugin {
 	
 	public boolean playerIsBooster(Player player) {
 		return bot.playerIsBooster(player);
+	}
+	
+	@Nullable
+	public WatchLogsAPI getWatchLogsAPI() {
+		return wlApi;
 	}
 	
 	public String formatTime(long seconds) {

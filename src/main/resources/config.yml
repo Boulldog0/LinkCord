@@ -76,6 +76,25 @@ enable-booster-rewards: true
 executed-commands-for-booster-rewards:
   - give %player diamond 10
   - eco give %player 300
+  
+# Français : Si vrai, execute les commandes configurés lorsqu'un joueur est détecté comme 'nouveau' booster.
+# English : If true, execute the configurated commands when a player is detected as 'newer' booster.
+execute-commands-when-boost : true
+
+# Français : Commandes exécutées lorsqu'un nouveau booster est détecté.
+# English : Commands executed when a new booster is detected.
+executed-commands-when-boost:
+  - lp user %player parent add booster
+  - eco give %player 2000
+  
+# Français : Si vrai, execute les commandes configurés lorsqu'un joueur est détecté comme 'ancien' booster qui ne boost plus.
+# English : If true, execute the configurated commands when a player is detected as 'older' booster who dont boost yet.
+execute-commands-when-unboost : true
+  
+# Français : Commandes exécutées lorsqu'un ancien booster n'est plus detecté comme booster.
+# English : Commands executed when an old booster was'nt detected as booster.
+executed-commands-when-unboost:
+  - lp user %player parent remove booster
 
 # Français : Si vrai, ajoute des rôles spécifiques lorsque le joueur dissocie son compte.
 # English: If true, adds specific roles when the player unlinks their account.

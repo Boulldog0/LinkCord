@@ -15,7 +15,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import fr.Boulldogo.LinkCord.Main;
-import fr.Boulldogo.LinkCord.Events.DiscordBoostRewardsEvent;
+import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
 import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
 import net.md_5.bungee.api.ChatColor;
 
@@ -137,7 +137,7 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 				String finalCommand = command.replace("%player", player.getName());
 				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
 				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + player.getName() + "(Due to booster rewards)");
-	            DiscordBoostRewardsEvent event = new DiscordBoostRewardsEvent(player.getName(),"/" + finalCommand, discordAccountName, discordAccountIDName);
+	            DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(),"/" + finalCommand, discordAccountName, discordAccountIDName);
 	            Bukkit.getPluginManager().callEvent(event);
 			}
 		}

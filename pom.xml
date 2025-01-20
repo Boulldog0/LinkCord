@@ -58,7 +58,7 @@
         <dependency>
 	       <groupId>com.github.Boulldog0</groupId>
 	       <artifactId>WatchLogs</artifactId>
-	       <version>1.3.3</version>
+	       <version>1.4.4</version>
 	       <scope>provided</scope>
 	    </dependency>
 	    <dependency>
