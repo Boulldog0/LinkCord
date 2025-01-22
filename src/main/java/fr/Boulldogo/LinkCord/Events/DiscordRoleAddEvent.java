@@ -39,6 +39,9 @@ public class DiscordRoleAddEvent extends Event {
 		return handlerList;
 	}
 
+    public static HandlerList getHandlerList() {
+        return handlerList;
+    }
 }
 
 

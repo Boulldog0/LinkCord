@@ -6,7 +6,7 @@ import org.bukkit.event.HandlerList;
 
 public class DiscordBoosterStatusChangeEvent extends Event {
 	
-	public static final HandlerList handlerList = new HandlerList();
+	public final static HandlerList handlerList  = new HandlerList();
 	private final Player player;
 	private final boolean isBoosting;
 	
@@ -27,5 +27,8 @@ public class DiscordBoosterStatusChangeEvent extends Event {
 	public HandlerList getHandlers() {
 		return handlerList;
 	}
-
+	
+    public static HandlerList getHandlerList() {
+        return handlerList;
+    }
 }
