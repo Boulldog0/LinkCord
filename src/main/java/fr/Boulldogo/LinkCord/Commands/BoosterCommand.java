@@ -14,17 +14,30 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.Events.RewardReason;
+import fr.Boulldogo.LinkCord.Utils.JSON.DiscordPlayerLink;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.md_5.bungee.api.ChatColor;
 
 public class BoosterCommand implements CommandExecutor, TabCompleter {
 	
-	private final Main plugin;
+	private final LinkCord plugin;
 	
-	public BoosterCommand(Main plugin) {
+	private List<String> boosterCommands = new ArrayList<>();
+	
+	private boolean boosterRewardsEnable;
+	private int boosterRewardCooldown;
+	
+	public BoosterCommand(LinkCord plugin) {
 		this.plugin = plugin;
+		
+		boosterCommands = plugin.getConfig().getStringList("executed-commands-for-booster-rewards");
+		boosterRewardsEnable = plugin.getConfig().getBoolean("enable-booster-rewards");
+		if(boosterRewardsEnable) {
+			boosterRewardCooldown = plugin.getConfig().getInt("boost-rewards-command-cooldown");
+		}
 	}
 
 	@Override
@@ -37,15 +50,17 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 	    String prefix = plugin.getConfig().getBoolean("use-prefix") ? translateString(plugin.getConfig().getString("prefix")) : "";
 	    
 	    Player player =(Player) sender;
-	    YamlFileGestionnary ges = plugin.getYamlGestionnary();
+	    LinksManager ges = plugin.getLinksManager();
 
 	    if(args.length < 1) {
-		    if(!ges.playerExists(player.getUniqueId())) {
+		    if(!ges.isPlayerLinked(player.getUniqueId())) {
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-not-linked")));
 		        return true;
 		    }
+		    
+		    DiscordPlayerLink link = ges.getLinkFor(player.getUniqueId());
 
-		    if(!ges.playerIsBooster(player.getUniqueId())) {
+		    if(!link.isBoosting()) {
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.you-are-not-a-booster")));
 		        return true;
 		    } else {
@@ -55,25 +70,24 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 		        }
 		    }
 
-		    if(!plugin.getConfig().getBoolean("enable-booster-rewards")) {
+		    if(!boosterRewardsEnable) {
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.booster-rewards-disable")));
 		        return true;
 		    }
 		    
 		    UUID playerUUID = player.getUniqueId();
 
-		    long currentTimestamp = Instant.now().getEpochSecond();
+		    long currentTime = System.currentTimeMillis();
 		    
 		    if(!ges.playerHasBoosterCooldown(playerUUID)) {
-		        int timestampToAdd = plugin.getConfig().getInt("boost-rewards-command-cooldown");
-		        long newExpireTimestamp = currentTimestamp + timestampToAdd;
-		        ges.setPlayerBoosterCooldown(playerUUID, newExpireTimestamp);
+		        long newExpireTime = currentTime + (boosterRewardCooldown * 1000);
+		        ges.setPlayerBoosterCooldown(playerUUID, newExpireTime);
 		        processBoosterRewardsGive(player);
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.rewards-correctly-given")));
 		    } else {
-		    	long expireTimestamp = Long.parseLong(ges.getTimestampBoosterForPlayer(playerUUID));
-		        long timeRemaining = expireTimestamp - currentTimestamp;
-		        String formattedTime = plugin.formatTime(timeRemaining);
+		    	long expireTimestamp = link.getExpireBoosterCooldown();
+		        long timeRemaining = expireTimestamp - currentTime;
+		        String formattedTime = plugin.formatTime(timeRemaining / 1000);
 		        player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.booster-rewards-cooldown").replace("%t", formattedTime)));
 		    }
 		    return true;
@@ -104,7 +118,7 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 	    	
 	    	UUID playerUUId = p.getUniqueId();
 	    	
-	    	if(!ges.playerExists(playerUUId)) {
+	    	if(!ges.isPlayerLinked(playerUUId)) {
 	            player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-not-linked")));
 	            return true;
 	    	}
@@ -127,20 +141,23 @@ public class BoosterCommand implements CommandExecutor, TabCompleter {
 	}
 
 	public void processBoosterRewardsGive(Player player) {
-	    YamlFileGestionnary ges = plugin.getYamlGestionnary();
+	    LinksManager ges = plugin.getLinksManager();
 	    
-	    String discordAccountName = ges.getDiscordTagByUUID(player.getUniqueId());
-	    String discordAccountIDName = ges.getDiscordAccountIdByUUID(player.getUniqueId());
+	    DiscordPlayerLink link = ges.getLinkFor(player.getUniqueId());
+	    if(link == null) return;
 	    
-		if(!plugin.getConfig().getStringList("executed-commands-for-booster-rewards").isEmpty()) {
-			for(String command : plugin.getConfig().getStringList("executed-commands-for-booster-rewards")) {
+	    String discordAccountName = link.getTag();
+	    String discordAccountIDName = link.getDiscordId();
+	    
+	    if(!boosterCommands.isEmpty()) {
+	    	boosterCommands.forEach(command -> {
 				String finalCommand = command.replace("%player", player.getName());
 				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
 				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + player.getName() + "(Due to booster rewards)");
-	            DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(),"/" + finalCommand, discordAccountName, discordAccountIDName);
+	            DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(),"/" + finalCommand, discordAccountName, discordAccountIDName, RewardReason.BOOSTER_COMMAND);
 	            Bukkit.getPluginManager().callEvent(event);
-			}
-		}
+	    	});
+	    }
 	}
 
     public String translateString(String s) {

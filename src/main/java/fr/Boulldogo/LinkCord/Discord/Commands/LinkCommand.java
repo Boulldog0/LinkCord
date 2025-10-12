@@ -7,13 +7,14 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Discord.Interface.SlashCommand;
 import fr.Boulldogo.LinkCord.Events.DiscordLinkEvent;
 import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
+import fr.Boulldogo.LinkCord.Events.RewardReason;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -28,10 +29,20 @@ import net.dv8tion.jda.api.Permission;
 
 public class LinkCommand implements SlashCommand {
 
-    private final Main plugin;
+    private final LinkCord plugin;
+    private List<String> commandsExecutedOnFirstLink = new ArrayList<>();
+    private List<String> commandsExecutedOnLink = new ArrayList<>();
+    private Long restrictChannelId = 0L;
 
-    public LinkCommand(Main plugin) {
+    public LinkCommand(LinkCord plugin) {
         this.plugin = plugin;
+        
+        this.commandsExecutedOnFirstLink = plugin.getConfig().getStringList("executed-commands-when-player-first-link");
+        this.commandsExecutedOnLink = plugin.getConfig().getStringList("executed-commands-when-player-link");
+        
+        if(plugin.getConfig().getBoolean("restrict-commands-channel")) {
+        	restrictChannelId = plugin.getConfig().getLong("link-channel-id");
+        }
     }
 
     @Override
@@ -59,19 +70,15 @@ public class LinkCommand implements SlashCommand {
                     String code = e.getOption("code").getAsString();
                     String prefix = plugin.getConfig().getBoolean("use-prefix") ? translateString(plugin.getConfig().getString("prefix")) : "";
 
-                    plugin.getLogger().info("Received link command with code: " + code);
-
                     if(code == null) {
                         sendErrorMessage(e, "The given code is null! Please retry to execute this command after.");
                         return;
                     }
 
-                    if(plugin.getConfig().getBoolean("restrict-commands-channel")) {
-                        if(e.getChannel().getIdLong() != plugin.getConfig().getLong("link-channel-id")) {
-                            MessageChannel channel = e.getGuild().getNewsChannelById(plugin.getConfig().getLong("link-channel-id"));
-                            sendErrorMessage(e, "You are not in the correct channel for linking your account! Channel: " + channel.getAsMention());
-                            return;
-                        }
+                    if(restrictChannelId != 0L && e.getChannel().getIdLong() != restrictChannelId) {
+                        MessageChannel channel = e.getGuild().getNewsChannelById(plugin.getConfig().getLong("link-channel-id"));
+                        sendErrorMessage(e, "You are not in the correct channel for linking your account! Channel: " + channel.getAsMention());
+                        return;
                     }
 
                     int c;
@@ -98,55 +105,45 @@ public class LinkCommand implements SlashCommand {
                     }
 
                     UUID playerUUID = player.getUniqueId();
-                    YamlFileGestionnary gestionnary = plugin.getYamlGestionnary();
+                    LinksManager ges = plugin.getLinksManager();
 
-                    if(gestionnary.playerExists(playerUUID)) {
+                    if(ges.isPlayerLinked(playerUUID)) {
                         sendErrorMessage(e, "This player is already linked with an account! Please unlink the account first before relinking it.");
                         return;
                     }
 
-                    boolean isBoosting = e.getMember().isBoosting();
                     @SuppressWarnings("deprecation")
             		String accountName = e.getMember().getUser().getAsTag();
-                    String accountUUID = e.getMember().getUser().getId();
-
-                    if(gestionnary.discordAccountIdIsLinked(accountUUID)) {
-                        sendErrorMessage(e, "The Discord account is already linked with a Minecraft account!");
-                        return;
-                    }
+                    String accountID = e.getMember().getUser().getId();
 
                     List<String> executedCommands = new ArrayList<>();
 
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                        if(!plugin.getConfig().getStringList("executed-commands-when-player-first-link").isEmpty()) {
-                            if(!gestionnary.playerHasAlreadyLinked(playerUUID)) {
-                                gestionnary.addLinkedPlayer(playerUUID);
-                                for(String command : plugin.getConfig().getStringList("executed-commands-when-player-first-link")) {
+                        if(!commandsExecutedOnFirstLink.isEmpty()) {
+                            if(!ges.playerHasAlreadyLinked(playerUUID)) {
+                                ges.addLinkedPlayer(playerUUID);
+                                commandsExecutedOnFirstLink.forEach(command -> {
                                     String finalCommand = command.replace("%player", playerName);
                                     plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to first link)");
                                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
                                     executedCommands.add("/" + finalCommand);
-            	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountUUID);
+            	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountID, RewardReason.FIRST_LINK);
             	    				Bukkit.getServer().getPluginManager().callEvent(event);
-                                }
+                                });
                             }
                         }
 
-                        if(!plugin.getConfig().getStringList("executed-commands-when-player-link").isEmpty()) {
-                            for(String command : plugin.getConfig().getStringList("executed-commands-when-player-link")) {
+                        if(!commandsExecutedOnLink.isEmpty()) {
+                        	commandsExecutedOnLink.forEach(command -> {
                                 String finalCommand = command.replace("%player", playerName);
                                 plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to link)");
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
                                 executedCommands.add("/" + finalCommand);
-        	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountUUID);
+        	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountID, RewardReason.LINK);
         	    				Bukkit.getServer().getPluginManager().callEvent(event);
-                            }
+                        	});
                         }
                     });
-
-                    gestionnary.registerDataForPlayer(playerUUID, playerName, accountName, accountUUID, isBoosting);
-                    player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-correctly-linked")
-                            .replace("%a", accountName)));
 
                     if(plugin.getConfig().getBoolean("update-discord-user-username")) {
                         tryUpdateNickname(e, player);
@@ -168,7 +165,7 @@ public class LinkCommand implements SlashCommand {
                     e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
 
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                        DiscordLinkEvent event = new DiscordLinkEvent(playerName, executedCommands, accountName, accountUUID);
+                        DiscordLinkEvent event = new DiscordLinkEvent(playerName, executedCommands, accountName, accountID);
                         Bukkit.getPluginManager().callEvent(event);
                     });
                     

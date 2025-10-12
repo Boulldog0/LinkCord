@@ -12,14 +12,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Discord.Commands.LinkCommand;
 import fr.Boulldogo.LinkCord.Discord.Commands.LookupCommand;
 import fr.Boulldogo.LinkCord.Discord.Commands.UnlinkCommand;
 import fr.Boulldogo.LinkCord.Discord.Interface.SlashCommand;
 import fr.Boulldogo.LinkCord.Events.DiscordRoleAddEvent;
 import fr.Boulldogo.LinkCord.Events.DiscordRoleRemoveEvent;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.Utils.JSON.DiscordPlayerLink;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -36,10 +37,20 @@ public class DiscordBot extends ListenerAdapter {
 
     private final Map<String, SlashCommand> commands = new HashMap<>();
     private JDA jda;
-    private final Main plugin;
+    private final LinkCord plugin;
+    
+    
+    private LinksManager ges;
+    private BotExtension extension; 
+    private int guildId;
+    private boolean updateNickname;
 
-    public DiscordBot(Main plugin) {
+    public DiscordBot(LinkCord plugin) {
         this.plugin = plugin;
+        
+        ges = plugin.getLinksManager();
+        guildId = plugin.getConfig().getInt("discord.guild-id");
+        updateNickname = plugin.getConfig().getBoolean("update-discord-user-username");
     }
 
     public void startBot() throws LoginException {
@@ -59,15 +70,25 @@ public class DiscordBot extends ListenerAdapter {
 
         registerCommands();
         updateCommands();
+        
+        this.extension = new BotExtension(plugin, jda, plugin.getLinksManager());
     }
-
+    
+    public BotExtension getBotExtension() {
+    	return extension;
+    }
+    
     private void registerCommands() {
     	addCommand(new LinkCommand(plugin));
     	addCommand(new UnlinkCommand(plugin));
     	addCommand(new LookupCommand(plugin));
     }
-
-    private void addCommand(SlashCommand command) {
+    
+    public void addEventListener(ListenerAdapter adapter) {
+    	jda.addEventListener(adapter);
+    }
+    
+    public void addCommand(SlashCommand command) {
         commands.put(command.getName(), command);
     }
 
@@ -95,31 +116,31 @@ public class DiscordBot extends ListenerAdapter {
     
     @SuppressWarnings("deprecation")
 	public void processPlayerVerifications(Player player) {
-    	YamlFileGestionnary ges = plugin.getYamlGestionnary();
-    	if(ges.playerExists(player.getUniqueId())) {
-    		UUID playerUUID = player.getUniqueId();
+		UUID playerUUID = player.getUniqueId();
+    	if(ges.isPlayerLinked(playerUUID)) {
+    		DiscordPlayerLink link = ges.getLinkFor(playerUUID);
     		
-    		String accountName = ges.getDiscordTagByUUID(playerUUID);
-    		Guild guild = jda.getGuildById(plugin.getConfig().getInt("discord.guild-id"));
-    		Member discordUser = guild.getMemberById(ges.getDiscordAccountIdByUUID(playerUUID));
+    		String accountName = link.getTag();
+    		Guild guild = jda.getGuildById(guildId);
+    		Member discordUser = guild.getMemberById(link.getDiscordId());
     		
     		if(guild.getMember(discordUser) != null) {
     			if(!discordUser.getUser().getAsTag().equals(accountName)) {
-    				ges.changeDiscordTagForPlayer(playerUUID, discordUser.getUser().getAsTag());
+    			    link.setDiscordTag(discordUser.getUser().getAsTag());  
     			}
     			
-    			if(!ges.playerIsBooster(playerUUID)) {
+    			if(!link.isBoosting()) {
     				if(discordUser.isBoosting()) {
-    					ges.setPlayerBooster(playerUUID, true);
+    					link.setBoosting(true);
     				}
     			} else {
     				if(!discordUser.isBoosting()) {
-    					ges.setPlayerBooster(playerUUID, false);
+    					link.setBoosting(false);
     				}
     			}
     		}
     		
-    		if(plugin.getConfig().getBoolean("update-discord-user-username")) {
+    		if(updateNickname) {
     			if(discordUser.getNickname() != player.getName()) {
     				discordUser.modifyNickname(player.getName());
     			}
@@ -129,17 +150,16 @@ public class DiscordBot extends ListenerAdapter {
     
     @SuppressWarnings("deprecation")
     public void checkAndAddRolesForPlayer(OfflinePlayer player, String roleId) {
-        YamlFileGestionnary ges = plugin.getYamlGestionnary();
-        if(ges.playerExists(player.getUniqueId())) {
-            UUID playerUUID = player.getUniqueId();
-
-            Guild guild = jda.getGuildById(plugin.getConfig().getString("discord.guild-id"));
+        UUID playerUUID = player.getUniqueId();
+        if(ges.isPlayerLinked(playerUUID)) {
+    		DiscordPlayerLink link = ges.getLinkFor(playerUUID);
+            Guild guild = jda.getGuildById(guildId);
             if(guild == null) {
                 plugin.getLogger().info("Error: Guild with ID " + plugin.getConfig().getString("discord.guild-id") + " does not exist!");
                 return;
             }
 
-            String discordUserId = ges.getDiscordAccountIdByUUID(playerUUID);
+            String discordUserId = link.getDiscordId();
             if(discordUserId == null) {
                 plugin.getLogger().info("Error: No Discord user linked for UUID " + playerUUID);
                 return;
@@ -170,7 +190,7 @@ public class DiscordBot extends ListenerAdapter {
                     success -> {
                         plugin.getLogger().info("Successfully added role " + roleToVerify.getName() + " to discord user " + discordUser.getUser().getAsTag());
                         Bukkit.getScheduler().runTask(plugin, () -> {
-                            DiscordRoleAddEvent event = new DiscordRoleAddEvent(player.getName(), roleToVerify.getName(), ges.getDiscordTagByUUID(playerUUID), ges.getDiscordAccountIdByUUID(playerUUID));
+                            DiscordRoleAddEvent event = new DiscordRoleAddEvent(player.getName(), roleToVerify.getName(), link.getTag(), link.getDiscordId());
                             Bukkit.getPluginManager().callEvent(event);
                         });
                     },
@@ -182,17 +202,16 @@ public class DiscordBot extends ListenerAdapter {
 
     @SuppressWarnings("deprecation")
     public void checkAndRemoveRolesForPlayer(OfflinePlayer player, String roleId) {
-        YamlFileGestionnary ges = plugin.getYamlGestionnary();
-        if(ges.playerExists(player.getUniqueId())) {
-            UUID playerUUID = player.getUniqueId();
-
-            Guild guild = jda.getGuildById(plugin.getConfig().getString("discord.guild-id"));
+        UUID playerUUID = player.getUniqueId();
+        if(ges.isPlayerLinked(playerUUID)) {
+    		DiscordPlayerLink link = ges.getLinkFor(playerUUID);
+            Guild guild = jda.getGuildById(guildId);
             if(guild == null) {
                 plugin.getLogger().info("Error: Guild with ID " + plugin.getConfig().getString("discord.guild-id") + " does not exist!");
                 return;
             }
 
-            String discordUserId = ges.getDiscordAccountIdByUUID(playerUUID);
+            String discordUserId = link.getDiscordId();
             if(discordUserId == null) {
                 plugin.getLogger().info("Error: No Discord user linked for UUID " + playerUUID);
                 return;
@@ -223,31 +242,32 @@ public class DiscordBot extends ListenerAdapter {
                     success -> {
                         plugin.getLogger().info("Successfully removed role " + roleToVerify.getName() + " from discord user " + discordUser.getUser().getAsTag());
                         Bukkit.getScheduler().runTask(plugin, () -> {
-                            DiscordRoleRemoveEvent event = new DiscordRoleRemoveEvent(player.getName(), roleToVerify.getName(), ges.getDiscordTagByUUID(playerUUID), ges.getDiscordAccountIdByUUID(playerUUID));
+                            DiscordRoleRemoveEvent event = new DiscordRoleRemoveEvent(player.getName(), roleToVerify.getName(), link.getTag(), link.getDiscordId());
                             Bukkit.getPluginManager().callEvent(event);
                         });
                     },
                     error -> plugin.getLogger().warning("Failed to remove role: " + error.getMessage())
                 );
             }
-        } else {
-        	plugin.getLogger().warning("Error when trying to remove players roles : Player is not linked !");
         }
     }
   
-    public boolean playerIsBooster(Player player) {
-        YamlFileGestionnary ges = plugin.getYamlGestionnary();
-        
-        if(ges.playerExists(player.getUniqueId())) {
-            UUID playerUUID = player.getUniqueId();
-
-            Guild guild = jda.getGuildById(plugin.getConfig().getString("discord.guild-id"));
+    public boolean playerIsBooster(Player player) {     
+        UUID playerUUID = player.getUniqueId();
+        if(ges.isPlayerLinked(playerUUID)) {
+    		DiscordPlayerLink link = ges.getLinkFor(playerUUID);
+            Guild guild = jda.getGuildById(guildId);
             if(guild == null) {
-                plugin.getLogger().severe("Guild with ID " + plugin.getConfig().getString("discord.guild-id") + " not found.");
-                return false; 
+                plugin.getLogger().info("Error: Guild with ID " + plugin.getConfig().getString("discord.guild-id") + " does not exist!");
+                return false;
             }
 
-            String discordUserId = ges.getDiscordAccountIdByUUID(playerUUID);
+            String discordUserId = link.getDiscordId();
+            if(discordUserId == null) {
+                plugin.getLogger().info("Error: No Discord user linked for UUID " + playerUUID);
+                return false;
+            }
+
             Member discordUser = guild.retrieveMemberById(discordUserId).complete();
             
             if(discordUser == null) {
@@ -256,7 +276,6 @@ public class DiscordBot extends ListenerAdapter {
             }
             return discordUser.isBoosting();
         }
-
         return false;
     }
 

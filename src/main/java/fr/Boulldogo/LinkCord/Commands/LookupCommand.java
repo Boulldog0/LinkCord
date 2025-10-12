@@ -1,5 +1,10 @@
 package fr.Boulldogo.LinkCord.Commands;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,16 +15,21 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.LinkCord;
+import fr.Boulldogo.LinkCord.Utils.JSON.DiscordPlayerLink;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.md_5.bungee.api.ChatColor;
 
 public class LookupCommand implements CommandExecutor {
 	
-	private final Main plugin;
+	private final LinkCord plugin;
 	
-	public LookupCommand(Main plugin) {
+	private List<String> playerLookupList = new ArrayList<>();
+	
+	public LookupCommand(LinkCord plugin) {
 		this.plugin = plugin;
+		
+		playerLookupList = plugin.getConfig().getStringList("lookup-message-using-nickname");
 	}
 
 	@Override
@@ -43,7 +53,7 @@ public class LookupCommand implements CommandExecutor {
 			return true;
 		}
 		
-		YamlFileGestionnary ges = plugin.getYamlGestionnary();
+		LinksManager ges = plugin.getLinksManager();
 		
 		String nicknameOrId = args[0];
 		boolean isNickname = false;
@@ -53,6 +63,9 @@ public class LookupCommand implements CommandExecutor {
 		} catch(NumberFormatException e) {
 			isNickname = true;
 		}
+		
+		
+		DiscordPlayerLink link = null;
 		
 		if(isNickname) {
 			@SuppressWarnings("deprecation")
@@ -65,61 +78,57 @@ public class LookupCommand implements CommandExecutor {
 			
 			UUID playerUUID = player.getUniqueId();
 			
-			if(!ges.playerExists(playerUUID)) {
+			if(!ges.isPlayerLinked(playerUUID)) {
 				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-not-linked")));
 				return true;
 			}
 			
-			String discordTag = ges.getDiscordTagByUUID(playerUUID);
-			String discordId = ges.getDiscordAccountIdByUUID(playerUUID);
-			boolean isBooster = ges.playerIsBooster(playerUUID);
-			String linkDate = ges.getLinkDateForUUID(playerUUID);
+			link = ges.getLinkFor(playerUUID);
 			
-			List<String> playerLookupList = plugin.getConfig().getStringList("lookup-message-using-nickname");
-			
-			for(int i = 0; i < playerLookupList.size(); i++) {
-				player.sendMessage(prefix + translateString(playerLookupList.get(i)
-						.replace("%player", nicknameOrId)
-						.replace("%discord_tag", discordTag)
-						.replace("%discord_id", discordId)
-						.replace("%link_date", linkDate)
-						.replace("%is_booster", String.valueOf(isBooster))));
+			if(link == null) {
+				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-not-linked")));
+				return true;
 			}
 		} else {
-			String player_name = ges.getPlayernameWithDiscordID(nicknameOrId);
+			link = ges.composeForLookupWithDiscordId(nicknameOrId);
 			
-			if(player_name == null) {
+			if(link == null) {
 				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.no-account-linked-with-discord-id")));
 				return true;
 			}
 			
-			@SuppressWarnings("deprecation")
-			OfflinePlayer p = Bukkit.getOfflinePlayer(player_name);
-			UUID playerUUID = player.getUniqueId();
+			OfflinePlayer p = Bukkit.getOfflinePlayer(link.getPlayerUUID());
 			
 			if(p == null) {
 				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.invalid-player")));
 				return true;
 			}
-			
-			String discordTag = ges.getDiscordTagByUUID(playerUUID);
-			boolean isBooster = ges.playerIsBooster(playerUUID);
-			String linkDate = ges.getLinkDateForUUID(playerUUID);
-			
-			List<String> playerLookupList = plugin.getConfig().getStringList("lookup-message-using-discord-id");
-			
-			for(int i = 0; i < playerLookupList.size(); i++) {
-				player.sendMessage(prefix + translateString(playerLookupList.get(i)
-						.replace("%player", player_name)
-						.replace("%discord_tag", discordTag)
-						.replace("%discord_id", nicknameOrId)
-						.replace("%link_date", linkDate)
-						.replace("%is_booster", String.valueOf(isBooster))));
-			}
 		}
 		
+		String discordTag = link.getTag();
+		String discordId = link.getDiscordId();
+		boolean isBooster = link.isBoosting();
+		String linkDate = getFormattedDateFor(link.getLinkTime());
+		
+		for(int i = 0; i < playerLookupList.size(); i++) {
+			player.sendMessage(prefix + translateString(playerLookupList.get(i)
+					.replace("%player", nicknameOrId)
+					.replace("%discord_tag", discordTag)
+					.replace("%discord_id", discordId)
+					.replace("%link_date", linkDate)
+					.replace("%is_booster", String.valueOf(isBooster))));
+		}	
 		return false;
 	}
+	
+    private String getFormattedDateFor(Long ms) {
+        LocalDateTime date = Instant.ofEpochMilli(ms)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        return date.format(formatter);
+    }
 	
     public String translateString(String s) {
     	return ChatColor.translateAlternateColorCodes('&', s);

@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
 
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SingleLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -23,26 +24,32 @@ import fr.Boulldogo.LinkCord.Listeners.PluginListener;
 import fr.Boulldogo.LinkCord.Utils.GithubVersion;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
 import fr.Boulldogo.LinkCord.Utils.YamlUpdater;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import fr.Boulldogo.WatchLogs.WatchLogsPlugin;
 import fr.Boulldogo.WatchLogs.API.WatchLogsAPI;
 
-public class Main extends JavaPlugin {
+public class LinkCord extends JavaPlugin {
+	
+	private static LinkCord instance;
 	
 	private LinkCodeUtils codeUtils;
-	private YamlFileGestionnary file;
+	private LinksManager manager;
 	private DiscordBot bot;
 	private PlayerUtils playerUtils;
 	private WatchLogsAPI wlApi;
 	
 	public void onEnable() {
+		LinkCord.instance = this;
 		saveDefaultConfig();
 		this.codeUtils = new LinkCodeUtils(this);
-		this.file = new YamlFileGestionnary(this);	
+		this.manager = new LinksManager(this);	
 		this.playerUtils = new PlayerUtils(this);
 		
-	    new Metrics(this, 23193);
+	    Metrics metrics = new Metrics(this, 23193);
+	    metrics.addCustomChart(new SingleLineChart("accounts_linked", () -> {
+	    	return manager.getLinkedAccountCount();
+	    }));
 	    
 	    YamlUpdater updater = new YamlUpdater(this);
 	    
@@ -94,15 +101,24 @@ public class Main extends JavaPlugin {
 	}
 	
 	public void onDisable() {
+		manager.saveLinks();
 		this.getLogger().info("Plugin LinkCord v" + this.getDescription().getVersion() + " unloaded with success !");
+	}
+	
+	public static LinkCord getInstance() {
+		return instance;
+	}
+	
+	public DiscordBot getBot() {
+		return bot;
 	}
 	
 	public LinkCodeUtils getCodeUtils() {
 		return codeUtils;
 	}
 	
-	public YamlFileGestionnary getYamlGestionnary() {
-		return file;
+	public LinksManager getLinksManager() {
+		return manager;
 	}
 	
 	public PlayerUtils getPlayerUtils() {

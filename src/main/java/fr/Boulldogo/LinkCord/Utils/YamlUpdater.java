@@ -3,17 +3,17 @@ package fr.Boulldogo.LinkCord.Utils;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 
 import java.io.*;
 import java.util.*;
 
 public class YamlUpdater {
-    private final Main plugin;
+    private final LinkCord plugin;
     private final Yaml yamlLoader;
     private final Yaml yamlDumper;
 
-    public YamlUpdater(Main plugin) {
+    public YamlUpdater(LinkCord plugin) {
         this.plugin = plugin;
         this.yamlLoader = new Yaml();
 

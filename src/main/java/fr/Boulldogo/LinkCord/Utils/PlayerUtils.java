@@ -1,90 +1,99 @@
 package fr.Boulldogo.LinkCord.Utils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Events.DiscordBoosterStatusChangeEvent;
+import fr.Boulldogo.LinkCord.Utils.JSON.DiscordPlayerLink;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 
 public class PlayerUtils {
 	
-	private final Main plugin;
+	private final LinkCord plugin;
+	private boolean addRolesOnUnlink;
+	private boolean removeRolesOnUnlink;
 	
-	public PlayerUtils(Main plugin) {
+	private Map<Long, String> roles = new HashMap<>();
+	private List<Long> rolesToSetOnUnlink = new ArrayList<>();
+	
+	public PlayerUtils(LinkCord plugin) {
 		this.plugin = plugin;
+		
+	    if(plugin.getConfig().getBoolean("link-permissions-with-discord-roles")) {
+	        for(String roleId : plugin.getConfig().getConfigurationSection("linked-roles").getKeys(false)) {
+	        	if(roleId.equals("0000000000") || roleId.equals("0000000001")) return;
+	            Long finalId = Long.parseLong(roleId);
+	            roles.put(finalId, plugin.getConfig().getString("linked-roles." + roleId + ".required-permission"));
+	        }
+	    }
+	    
+	    for(String role : plugin.getConfig().getStringList("roles-to-set-on-unlink")) {
+	    	try {
+		    	rolesToSetOnUnlink.add(Long.parseLong(role));
+	    	} catch(Exception e) {
+	    		plugin.getLogger().info("Invalid role value for " + role + " in roles-to-set-on-unlink");
+	    	}
+	    }
+	    
+	    for(String role : plugin.getConfig().getStringList("roles-to-set-on-unlink")) {
+	    	try {
+		    	rolesToSetOnUnlink.add(Long.parseLong(role));
+	    	} catch(Exception e) {
+	    		plugin.getLogger().info("Invalid role value for " + role + " in roles-to-set-on-unlink");
+	    	}
+	    }
+	    
+	    addRolesOnUnlink = plugin.getConfig().getBoolean("add-specific-roles-on-unlink");
+	    removeRolesOnUnlink = plugin.getConfig().getBoolean("remove-player-linked-roles-on-unlink");
 	}
 	
 	public void processPlayerVerifications(Player player) {
-		new BukkitRunnable() {
-			
-			@Override
-			public void run() {
-				YamlFileGestionnary ges = plugin.getYamlGestionnary();
-				if(ges.playerExists(player.getUniqueId())) {
-				    if(plugin.getConfig().getBoolean("link-permissions-with-discord-roles")) {
-				        for(String roleId : plugin.getConfig().getConfigurationSection("linked-roles").getKeys(false)) {
-				        	if(roleId.equals("0000000000") || roleId.equals("0000000001")) return;
-				            Long finalId = Long.parseLong(roleId);
-				            if(player.hasPermission("linked-roles." + roleId + ".required-permission")) {
-				                plugin.checkAndAddDiscordRole(player, finalId);
-				            } else {
-				                plugin.checkAndDeleteDiscordRole(player, finalId);
-				            }
-				        }
-				    }
-				    if(plugin.playerIsBooster(player) && !ges.playerIsBooster(player.getUniqueId())) {
-				    	ges.setPlayerBooster(player.getUniqueId(), true);
-				    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, true);
-				    	Bukkit.getServer().getPluginManager().callEvent(event);
-				    } else if(!plugin.playerIsBooster(player) && ges.playerIsBooster(player.getUniqueId())) {
-				    	ges.setPlayerBooster(player.getUniqueId(), false);
-				    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, false);
-				    	Bukkit.getServer().getPluginManager().callEvent(event);
-				    }
+		LinksManager ges = plugin.getLinksManager();
+		if(ges.isPlayerLinked(player.getUniqueId())) {
+			if(!roles.isEmpty()) {
+				for(Long role : roles.keySet()) {
+					if(player.hasPermission(roles.get(role))) {
+		                plugin.checkAndAddDiscordRole(player, role);
+					} else {
+		                plugin.checkAndDeleteDiscordRole(player, role);
+					}
 				}
-			}	
-		}.runTaskAsynchronously(plugin);
+			}
+		    DiscordPlayerLink link = ges.getLinkFor(player.getUniqueId());
+		    boolean isBoosting = plugin.playerIsBooster(player);
+		    
+		    if(isBoosting && !link.isBoosting()) {
+		    	link.setBoosting(true);
+		    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, true);
+		    	Bukkit.getServer().getPluginManager().callEvent(event);
+		    } else if(!isBoosting && link.isBoosting()) {
+		    	link.setBoosting(false);
+		    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, false);
+		    	Bukkit.getServer().getPluginManager().callEvent(event);
+		    }
+		}
 	}
 
-	public void removeAllLinkedRoles(OfflinePlayer player) {
-	    plugin.getLogger().info("Executing removeAllLinkedRoles for player: " + player.getName());
-	    
-	    boolean addRolesOnUnlink = plugin.getConfig().getBoolean("add-specific-roles-on-unlink");
-	    boolean removeRolesOnUnlink = plugin.getConfig().getBoolean("remove-player-linked-roles-on-unlink");
-	    
-	    plugin.getLogger().info("add-specific-roles-on-unlink: " + addRolesOnUnlink);
-	    plugin.getLogger().info("remove-player-linked-roles-on-unlink: " + removeRolesOnUnlink);
-	    
+	public void removeAllLinkedRoles(OfflinePlayer player) {        
 	    if(addRolesOnUnlink) {
-	        plugin.getLogger().info("Unlink detected/ Set specific roles on unlink true");
-	        if(!plugin.getConfig().getStringList("roles-to-set-on-unlink").isEmpty()) {
-	            for(String roleId : plugin.getConfig().getStringList("roles-to-set-on-unlink")) {
-	                Long finalId = Long.parseLong(roleId);
-	                plugin.checkAndAddDiscordRole(player, finalId);
-	                plugin.getLogger().info("Added role: " + finalId + " to player: " + player.getName());
-	            }
-	        } else {
-	            plugin.getLogger().info("List empty!");
-	        }
-	    } else {
-	        plugin.getLogger().info("Unlink not detected -> false");
+	    	if(!rolesToSetOnUnlink.isEmpty()) {
+	    		rolesToSetOnUnlink.forEach(role -> {
+	                plugin.checkAndAddDiscordRole(player, role);
+	    		});
+	    	}
 	    }
 
 	    if(removeRolesOnUnlink) {
-	        for(String roleId : plugin.getConfig().getConfigurationSection("linked-roles").getKeys(false)) {
-	            plugin.getLogger().info("Processing role ID: " + roleId);
-	            if(roleId.equals("0000000000") || roleId.equals("0000000001")) {
-	                plugin.getLogger().info("Skipping role ID: " + roleId);
-	                continue;  
-	            }
-	            Long finalId = Long.parseLong(roleId);
-	            plugin.checkAndDeleteDiscordRole(player, finalId);
-	            plugin.getLogger().info("Removed role: " + finalId + " from player: " + player.getName());
-	        }
-	    } else {
-	        plugin.getLogger().info("remove-player-linked-roles-on-unlink is false");
+	    	roles.keySet().forEach(role -> {
+	            plugin.checkAndDeleteDiscordRole(player, role);
+	    	});
 	    }
 	}
 }

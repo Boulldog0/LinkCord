@@ -87,9 +87,9 @@ LinkCord is released under the [MIT License](https://opensource.org/licenses/MIT
 
 ## ⚽ Goals of download
 
-❌ 100 Downloads
+✅ 100 Downloads
 
-❌ 200 Downloads
+✅ 200 Downloads
 
 ❌ 500 Downloads
 

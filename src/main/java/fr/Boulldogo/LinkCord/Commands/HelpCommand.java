@@ -7,14 +7,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import net.md_5.bungee.api.ChatColor;
 
 public class HelpCommand implements CommandExecutor {
 	
-	private final Main plugin;
+	private final LinkCord plugin;
 	
-	public HelpCommand(Main plugin) {
+	public HelpCommand(LinkCord plugin) {
 		this.plugin = plugin;
 	}
 

@@ -7,13 +7,14 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Discord.Interface.SlashCommand;
 import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
 import fr.Boulldogo.LinkCord.Events.DiscordUnlinkEvent;
+import fr.Boulldogo.LinkCord.Events.RewardReason;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -27,10 +28,22 @@ import net.md_5.bungee.api.ChatColor;
 
 public class UnlinkCommand implements SlashCommand {
 
-    private final Main plugin;
+    private final LinkCord plugin;
+    
+    private List<String> unlinkCommands = new ArrayList<>();
+    
+    private boolean selfUnlinkDisable;
+    private Long restrictChannelId = 0L;
 
-    public UnlinkCommand(Main plugin) {
+    public UnlinkCommand(LinkCord plugin) {
         this.plugin = plugin;
+        
+        unlinkCommands = plugin.getConfig().getStringList("executed-commands-when-player-unlink");
+        
+        selfUnlinkDisable = plugin.getConfig().getBoolean("disable-self-unlink");
+        if(plugin.getConfig().getBoolean("restrict-commands-channel")) {
+        	restrictChannelId = plugin.getConfig().getLong("link-channel-id");
+        }
     }
 
     @Override
@@ -54,8 +67,7 @@ public class UnlinkCommand implements SlashCommand {
     @Override
     public void execute(SlashCommandInteractionEvent e) {
         e.deferReply().queue(
-                success -> {
-                	
+                success -> {            	
                 	String code = e.getOption("code").getAsString();
                 	String prefix = plugin.getConfig().getBoolean("use-prefix") ? translateString(plugin.getConfig().getString("prefix")) : "";
                 	
@@ -70,21 +82,20 @@ public class UnlinkCommand implements SlashCommand {
                 		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
                 	}
                 	
-                	if(plugin.getConfig().getBoolean("restrict-commands-channel")) {
-                    	if(e.getChannel().getIdLong() != plugin.getConfig().getInt("link-channel-id")) {
-                    		MessageChannel channel = e.getGuild().getNewsChannelById(plugin.getConfig().getInt("link-channel-id"));
-                    		EmbedBuilder builder = new EmbedBuilder();
-                    		builder.setTitle("Error !");
-                    		builder.setDescription(":x: You are not in the good channel for unlink your account ! Channel : " + channel.getAsMention());
-                    		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
-                    		
-                    		MessageEmbed embed = builder.build();
-                    		
-                    		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
-                    	}
-                	}
+                    if(restrictChannelId != 0L && e.getChannel().getIdLong() != restrictChannelId) {
+                		MessageChannel channel = e.getGuild().getNewsChannelById(plugin.getConfig().getInt("link-channel-id"));
+                		EmbedBuilder builder = new EmbedBuilder();
+                		builder.setTitle("Error !");
+                		builder.setDescription(":x: You are not in the good channel for unlink your account ! Channel : " + channel.getAsMention());
+                		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
+                		
+                		MessageEmbed embed = builder.build();
+                		
+                		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                		return;
+                    }
                 	
-            		if(plugin.getConfig().getBoolean("disable-self-unlink")) {
+            		if(selfUnlinkDisable) {
                 		EmbedBuilder builder = new EmbedBuilder();
                 		builder.setTitle("Error !");
                 		builder.setDescription(":x: The self unlink is disabled in this server ! Please contact the staff for more informations.");
@@ -93,6 +104,7 @@ public class UnlinkCommand implements SlashCommand {
                 		MessageEmbed embed = builder.build();
                 		
                 		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                		return;
             		}
                 	
                 	int c = 0;
@@ -108,6 +120,7 @@ public class UnlinkCommand implements SlashCommand {
                 		MessageEmbed embed = builder.build();
                 		
                 		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                		return;
                 	}
                 	
                 	LinkCodeUtils codeUtils = plugin.getCodeUtils();
@@ -121,6 +134,7 @@ public class UnlinkCommand implements SlashCommand {
                 		MessageEmbed embed = builder.build();
                 		
                 		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                		return;
                 	}
                 	
                 	String playerName = codeUtils.getPlayerNameWithCode(c);
@@ -138,6 +152,7 @@ public class UnlinkCommand implements SlashCommand {
                     		MessageEmbed embed = builder.build();
                     		
                     		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                    		return;
                     	}	
                 	} else {
                 		EmbedBuilder builder = new EmbedBuilder();
@@ -147,13 +162,14 @@ public class UnlinkCommand implements SlashCommand {
                 		
                 		MessageEmbed embed = builder.build();
                 		
-                		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();	
+                		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                		return;
                 	}
                 	
                 	UUID playerUUID = player.getUniqueId();
                 	
-                	YamlFileGestionnary gestionnary = plugin.getYamlGestionnary();
-                	if(!gestionnary.playerExists(playerUUID)) {
+                	LinksManager ges = plugin.getLinksManager();
+                	if(!ges.isPlayerLinked(playerUUID)) {
                 		EmbedBuilder builder = new EmbedBuilder();
                 		builder.setTitle("Error !");
                 		builder.setDescription(":x: This player is not linked with an account !");
@@ -162,11 +178,12 @@ public class UnlinkCommand implements SlashCommand {
                 		MessageEmbed embed = builder.build();
                 		
                 		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
+                		return;
                 	}    	
                 	
             		@SuppressWarnings("deprecation")
             		String accountName = e.getMember().getUser().getAsTag();
-                	String accountUUID = e.getMember().getUser().getId();  	
+                	String accountID = e.getMember().getUser().getId();  	
             		
             		PlayerUtils u = plugin.getPlayerUtils();
             		u.removeAllLinkedRoles(player);
@@ -174,16 +191,16 @@ public class UnlinkCommand implements SlashCommand {
             		List<String> executedCommands = new ArrayList<>();
             		
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                		if(!plugin.getConfig().getStringList("executed-commands-when-player-unlink").isEmpty()) {
-                			for(String command : plugin.getConfig().getStringList("executed-commands-when-player-unlink")) {
+                    	if(!unlinkCommands.isEmpty()) {
+                    		unlinkCommands.forEach(command -> {
                 				String finalCommand = command.replace("%player", playerName);
                 				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + " (Due to unlink)");
                 				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
                 				executedCommands.add("/" + finalCommand);
-        	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(playerName, "/" + finalCommand, accountName, accountUUID);
+        	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(playerName, "/" + finalCommand, accountName, accountID, RewardReason.UNLINK);
         	    				Bukkit.getServer().getPluginManager().callEvent(event);
-                			}
-                		}     	
+                    		});
+                    	}
                     });    
 
             		EmbedBuilder builder = new EmbedBuilder();
@@ -194,7 +211,7 @@ public class UnlinkCommand implements SlashCommand {
             		MessageEmbed embed = builder.build();
             		
             		Bukkit.getScheduler().runTask(plugin, () -> {
-            			DiscordUnlinkEvent event = new DiscordUnlinkEvent(playerName, executedCommands, accountName, accountUUID);
+            			DiscordUnlinkEvent event = new DiscordUnlinkEvent(playerName, executedCommands, accountName, accountID);
             			Bukkit.getPluginManager().callEvent(event);	
             		});
                 	
@@ -205,7 +222,7 @@ public class UnlinkCommand implements SlashCommand {
                 	LinkCodeUtils utils = plugin.getCodeUtils();
                 	utils.removePlayer(player);
                 	
-                	gestionnary.removePlayerFromFile(playerUUID);
+                	ges.removePlayer(playerUUID);
                 	
             		e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
                 },

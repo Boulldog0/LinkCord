@@ -14,6 +14,14 @@ restrict-commands-channel: false
 # English: ID of the Discord channel where link commands are allowed, used if "restrict-commands-channel" is enabled.
 link-channel-id: 0000000000
 
+# Français : Défini la durée (en secondes) entre chaque sauvegarde automatique faite si une modification à été appliquée
+# English : Define time (in seconds) betweeen each automatic saves done if a modification was applyed
+automatic-save-delay: 100
+
+# Français : Si vrai, les données en RAM des joueurs qui se déconnectent seront vidés.
+# English : if true, datas in RAM of players who disconnect will be deleted.
+empty-player-datas-in-ram-on-disconnect: true
+
 # Français : Si vrai, lie les permissions Minecraft avec les rôles Discord.
 # English: If true, links Minecraft permissions with Discord roles.
 link-permissions-with-discord-roles: true
@@ -41,11 +49,10 @@ disable-self-unlink: false
 # Français : Liste des rôles Discord associés aux permissions Minecraft.
 # English: List of Discord roles associated with Minecraft permissions.
 linked-roles:
-# Exemple / Example:
-# '0000000000':
-#     required-permission: 'linkcord.role1'
-# '0000000001':
-#     required-permission: 'linkcord.role2'
+ '0000000000':
+     required-permission: 'linkcord.role1'
+ '0000000001':
+     required-permission: 'linkcord.role2'
 
 # Français : Si vrai, met à jour le pseudo du joueur Minecraft avec celui de Discord lors du lien.
 # English: If true, updates the Minecraft player's username with their Discord username when linked.

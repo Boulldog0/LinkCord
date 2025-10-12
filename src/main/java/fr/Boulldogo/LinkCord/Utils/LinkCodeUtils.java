@@ -6,14 +6,14 @@ import java.util.Random;
 
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 
 public class LinkCodeUtils {
 	
 	private Map<Player, Integer> playerCodes = new HashMap<>();
-	private Main plugin;
+	private LinkCord plugin;
 	
-	public LinkCodeUtils(Main plugin) {
+	public LinkCodeUtils(LinkCord plugin) {
 		this.plugin = plugin;
 	}
 	

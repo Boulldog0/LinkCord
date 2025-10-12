@@ -13,20 +13,26 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Events.DiscordRewardsCommandEvent;
 import fr.Boulldogo.LinkCord.Events.DiscordUnlinkEvent;
+import fr.Boulldogo.LinkCord.Events.RewardReason;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
 import fr.Boulldogo.LinkCord.Utils.PlayerUtils;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.Utils.JSON.DiscordPlayerLink;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.md_5.bungee.api.ChatColor;
 
 public class UnlinkCommand implements CommandExecutor, TabCompleter{
 	
-	private final Main plugin;
+	private final LinkCord plugin;
 	
-	public UnlinkCommand(Main plugin) {
+    private List<String> unlinkCommands = new ArrayList<>();
+	
+	public UnlinkCommand(LinkCord plugin) {
 		this.plugin = plugin;
+		
+        unlinkCommands = plugin.getConfig().getStringList("executed-commands-when-player-unlink");
 	}
 
 	@Override
@@ -46,14 +52,14 @@ public class UnlinkCommand implements CommandExecutor, TabCompleter{
 		}
 		
 		if(args.length < 1) {
-			YamlFileGestionnary ges = plugin.getYamlGestionnary();
+			LinksManager ges = plugin.getLinksManager();
 			
 			if(plugin.getConfig().getBoolean("disable-self-unlink")) {
 				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.self-unlink-disable")));
 				return true;
 			}
 			
-			if(!ges.playerExists(player.getUniqueId())) {
+			if(!ges.isPlayerLinked(player.getUniqueId())) {
 				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-not-linked")));
 				return true;
 			}
@@ -91,36 +97,37 @@ public class UnlinkCommand implements CommandExecutor, TabCompleter{
 			}
 			
 			UUID playerUUID = p.getUniqueId();
-			YamlFileGestionnary ges = plugin.getYamlGestionnary();
+			LinksManager ges = plugin.getLinksManager();
 			
-			if(!ges.playerExists(playerUUID)) {
+			if(!ges.isPlayerLinked(playerUUID)) {
 				player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-not-linked")));
 				return true;
 			}
 			
+			DiscordPlayerLink link = ges.getLinkFor(playerUUID);
 			PlayerUtils utils = plugin.getPlayerUtils();
 			utils.removeAllLinkedRoles(p);
 			
-			String accountName = ges.getDiscordTagByUUID(playerUUID);
-	    	String accountUUID = ges.getDiscordAccountIdByUUID(playerUUID);
+			String accountName = link.getTag();
+	    	String accountID = link.getDiscordId();
 			
 			List<String> executedCommands = new ArrayList<>();
 			
 	        Bukkit.getScheduler().runTask(plugin,() -> {
-	    		if(!plugin.getConfig().getStringList("executed-commands-when-player-unlink").isEmpty()) {
-	    			for(String cmd : plugin.getConfig().getStringList("executed-commands-when-player-unlink")) {
+	        	if(!unlinkCommands.isEmpty()) {
+	        		unlinkCommands.forEach(cmd -> {
 	    				String finalCommand = cmd.replace("%player", playerName);
 	    				plugin.getLogger().info("Dispatch command /" + finalCommand + " for player " + playerName + "(Due to force unlink)");
 	    				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
 	    				executedCommands.add("/" + finalCommand);
-	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountUUID);
+	    				DiscordRewardsCommandEvent event = new DiscordRewardsCommandEvent(player.getName(), "/" + finalCommand, accountName, accountID, RewardReason.UNLINK);
 	    				Bukkit.getServer().getPluginManager().callEvent(event);
-	    			}
-	    		}     	
+	        		});
+	        	}
 	        });
 			
 			Bukkit.getScheduler().runTask(plugin,() -> {
-				DiscordUnlinkEvent event = new DiscordUnlinkEvent(playerName, executedCommands, accountName, accountUUID);
+				DiscordUnlinkEvent event = new DiscordUnlinkEvent(playerName, executedCommands, accountName, accountID);
 				Bukkit.getPluginManager().callEvent(event);	
 			});
 			
@@ -128,7 +135,7 @@ public class UnlinkCommand implements CommandExecutor, TabCompleter{
 				plugin.getPlayerUtils().removeAllLinkedRoles(player);
 			}	
 	    	
-	    	ges.removePlayerFromFile(playerUUID);
+	    	ges.removePlayer(playerUUID);
 	    	
 	    	if(p.isOnline()) {
 		    	player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-correctly-unlinked")));

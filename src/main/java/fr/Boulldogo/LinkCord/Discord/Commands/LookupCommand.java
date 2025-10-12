@@ -1,14 +1,18 @@
 package fr.Boulldogo.LinkCord.Discord.Commands;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Discord.Interface.SlashCommand;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
-
+import fr.Boulldogo.LinkCord.Utils.JSON.DiscordPlayerLink;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -23,9 +27,9 @@ import net.md_5.bungee.api.ChatColor;
 
 public class LookupCommand implements SlashCommand {
 
-    private final Main plugin;
+    private final LinkCord plugin;
 
-    public LookupCommand(Main plugin) {
+    public LookupCommand(LinkCord plugin) {
         this.plugin = plugin;
     }
 
@@ -45,7 +49,7 @@ public class LookupCommand implements SlashCommand {
                 .addOptions(
                 		new OptionData(OptionType.BOOLEAN, "ephemeral", "Define if you want to show to everyone the result or no (True/False)").setRequired(true),
                         new OptionData(OptionType.MENTIONABLE, "user", "Give the discord member whose in-game nickname you want to obtain").setRequired(false),
-                        new OptionData(OptionType.STRING, "pseudo", "Give the in-game nickname whose discord account you want to obtain").setRequired(false)
+                        new OptionData(OptionType.STRING, "nickname", "Give the in-game nickname whose discord account you want to obtain").setRequired(false)
                 );
     }
 
@@ -54,7 +58,7 @@ public class LookupCommand implements SlashCommand {
     	e.deferReply().queue();
     	
     	Member user = e.getOption("user") != null ? e.getOption("user").getAsMember() : null;
-    	String username = e.getOption("pseudo") != null ? e.getOption("pseudo").getAsString() : null;
+    	String username = e.getOption("nickname") != null ? e.getOption("nickname").getAsString() : null;
     	boolean ephemeral = !e.getOption("ephemeral").getAsBoolean();
     	
     	Long requiredRole = plugin.getConfig().getLong("required-role-id-for-lookup-command");
@@ -109,11 +113,12 @@ public class LookupCommand implements SlashCommand {
     		return;
     	}
     	
-    	YamlFileGestionnary ges = plugin.getYamlGestionnary();
+    	LinksManager ges = plugin.getLinksManager();
     	
     	if(user != null) {
     		Long accountId = user.getIdLong();
-    		if(!ges.discordUUIDExists(accountId.toString())) {
+    		DiscordPlayerLink link = ges.composeForLookupWithDiscordId(String.valueOf(accountId));
+    		if(link == null) {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
         		builder.setDescription(":x: Error : No linked account found with given user !");
@@ -125,9 +130,8 @@ public class LookupCommand implements SlashCommand {
         		return;
     		}
     		
-    		String uname = ges.getPlayernameWithDiscordID(accountId.toString());
-    		@SuppressWarnings("deprecation")
-			UUID playerUUID = ges.getUUIDByDiscordTag(user.getUser().getAsTag().toString());
+    		String uname = Bukkit.getOfflinePlayer(link.getPlayerUUID()).getName();
+			UUID playerUUID = link.getPlayerUUID();
     		
     		EmbedBuilder builder = new EmbedBuilder();
     		builder.setTitle("Linked account found for " + user.getAsMention() + " !");
@@ -157,10 +161,11 @@ public class LookupCommand implements SlashCommand {
     		
     		UUID playerUUID = player.getUniqueId();
     		
-    		if(!ges.playerExists(playerUUID)) {
+    		DiscordPlayerLink link = ges.composeForLookupWithUUID(playerUUID);
+    		if(link == null) {
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Error !");
-        		builder.setDescription(":x: Error : The given player doesn't have a linked account!");
+        		builder.setDescription(":x: Error : No linked account found with given user !");
         		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
         		MessageEmbed embed = builder.build();
@@ -169,17 +174,17 @@ public class LookupCommand implements SlashCommand {
         		return;
     		}
     		
-    		Long discordId = Long.valueOf(ges.getDiscordAccountIdByUUID(playerUUID));
-    		String tag = ges.getDiscordTagByUUID(playerUUID);
+    		Long discordId = Long.valueOf(link.getDiscordId());
+    		String tag = link.getTag();
     		Member member = e.getGuild().getMemberById(discordId);
-    		String linkDate = ges.getLinkDateForUUID(playerUUID);
+    		String linkDate = getFormattedDateFor(link.getLinkTime());
     		
     		if(member == null) {	
         		EmbedBuilder builder = new EmbedBuilder();
         		builder.setTitle("Linked account found for " + username + " !");
         		builder.setDescription(":warning: The linked discord account is not found in this discord server ! :warning:");
         		builder.addField("Discord ID :", discordId.toString(), true);
-        		builder.addField("Account linked at :", linkDate, true);
+        		builder.addField("Account linked at (European date format) :", linkDate, true);
         		builder.addField("Last Registred Discord Tag :", tag, true);
         		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
@@ -192,7 +197,7 @@ public class LookupCommand implements SlashCommand {
         		builder.setTitle("Linked account found for " + username + " !");
         		builder.addField("Discord Tag :", member.getAsMention(), true);
         		builder.addField("Discord ID :", discordId.toString(), true);
-        		builder.addField("Account linked at :", linkDate, true);
+        		builder.addField("Account linked at (European date format) :", linkDate, true);
         		builder.addField("Last Registred Discord Tag :", tag, true);
         		builder.setAuthor("LinkCord", "https://www.spigotmc.org/resources/linkcord-1-7-1-21.119310/", "https://i.ibb.co/wSprwQx/image-2024-08-30-014250385.jpg");
         		
@@ -202,6 +207,15 @@ public class LookupCommand implements SlashCommand {
         		return;
     		}
     	}
+    }
+    
+    private String getFormattedDateFor(Long ms) {
+        LocalDateTime date = Instant.ofEpochMilli(ms)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        return date.format(formatter);
     }
     
     public String translateString(String s) {

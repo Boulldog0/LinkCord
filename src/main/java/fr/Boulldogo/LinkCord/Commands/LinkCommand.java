@@ -5,16 +5,16 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import fr.Boulldogo.LinkCord.Main;
+import fr.Boulldogo.LinkCord.LinkCord;
 import fr.Boulldogo.LinkCord.Utils.LinkCodeUtils;
-import fr.Boulldogo.LinkCord.Utils.YamlFileGestionnary;
+import fr.Boulldogo.LinkCord.Utils.JSON.LinksManager;
 import net.md_5.bungee.api.ChatColor;
 
 public class LinkCommand implements CommandExecutor {
 	
-	private final Main plugin;
+	private final LinkCord plugin;
 	
-	public LinkCommand(Main plugin) {
+	public LinkCommand(LinkCord plugin) {
 		this.plugin = plugin;
 	}
 
@@ -34,9 +34,9 @@ public class LinkCommand implements CommandExecutor {
 			return true;
 		}
 		
-		YamlFileGestionnary ges = plugin.getYamlGestionnary();
+		LinksManager ges = plugin.getLinksManager();
 		
-		if(ges.playerExists(player.getUniqueId())) {
+		if(ges.isPlayerLinked(player.getUniqueId())) {
 			player.sendMessage(prefix + translateString(plugin.getConfig().getString("messages.account-already-linked")));
 			return true;
 		}
