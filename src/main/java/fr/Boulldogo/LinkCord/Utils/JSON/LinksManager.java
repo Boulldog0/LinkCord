@@ -226,6 +226,11 @@ public class LinksManager {
     }
 
     public boolean playerHasAlreadyLinked(UUID playerUUID) {
+    	if(alreadyLinkeds == null) {
+    		alreadyLinkeds = new ArrayList<>();
+    		toSave = true;
+    		return false;
+    	}
     	return alreadyLinkeds.contains(playerUUID);
     }
 
