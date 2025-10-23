@@ -143,6 +143,27 @@ public class LinksManager {
 		}
     }
     
+    public void savePlayer(UUID playerUUID) {
+    	if(links.containsKey(playerUUID)) {
+    		File file = new File(folder, playerUUID + ".json");
+    		if(!file.exists()) {
+        		try {
+        			file.createNewFile();
+        		} catch(Exception e) {
+        			plugin.getLogger().warning("An error occured when trying to create file to save link datas of player " + playerUUID + " : ");
+        			e.printStackTrace();
+        		}
+    		}
+    		
+			try(FileWriter writer = new FileWriter(file)) {
+				gson.toJson(links.get(playerUUID), writer);
+			} catch(Exception e) {
+				plugin.getLogger().warning("An error occured when trying to save datas of user " + playerUUID + " : ");
+				e.printStackTrace();
+    		}
+    	}
+    }
+    
     public DiscordPlayerLink composeForLookupWithDiscordId(String id) {
     	for(DiscordPlayerLink link : links.values()) {
     		if(link.getDiscordId().equals(id)) {
@@ -212,6 +233,7 @@ public class LinksManager {
     	link.setDiscordTag(discordTag);
     	
     	links.put(player.getUniqueId(), link);
+    	savePlayer(player.getUniqueId());
     }
 
     public DiscordPlayerLink getLinkFor(UUID playerUUID) {

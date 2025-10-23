@@ -116,7 +116,8 @@ public class LinkCommand implements SlashCommand {
             		String accountName = e.getMember().getUser().getAsTag();
                     String accountID = e.getMember().getUser().getId();
 
-                    List<String> executedCommands = new ArrayList<>();
+                    List<String> executedCommands = new ArrayList<>();                   
+                    ges.registerDataForPlayer(player, accountID, accountName, false);
 
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         if(!commandsExecutedOnFirstLink.isEmpty()) {
