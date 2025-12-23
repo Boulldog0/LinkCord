@@ -120,6 +120,16 @@ remove-specific-roles-on-link: false
 # English: List of roles to remove from the player when linking their account.
 roles-to-remove-on-link:
   - '00000000000'
+  
+add-specific-roles-on-link: false
+
+roles-to-add-on-link:
+  - '00000000000'
+  
+remove-specific-roles-on-unlink: false
+
+roles-to-remove-on-unlink:
+  - '00000000000'
 
 messages:
   # Français : Message affiché lorsqu'un joueur n'a pas la permission d'exécuter une commande.

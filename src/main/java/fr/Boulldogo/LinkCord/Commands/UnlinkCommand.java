@@ -108,6 +108,13 @@ public class UnlinkCommand implements CommandExecutor, TabCompleter{
 			PlayerUtils utils = plugin.getPlayerUtils();
 			utils.removeAllLinkedRoles(p);
 			
+            if(plugin.getConfig().getBoolean("remove-specific-roles-on-unlink")) {
+            	for(String roleId : plugin.getConfig().getStringList("roles-to-remove-on-unlink")) {
+    	            Long finalId = Long.parseLong(roleId);
+                    plugin.checkAndDeleteDiscordRole(player, finalId);
+            	}
+            }
+			
 			String accountName = link.getTag();
 	    	String accountID = link.getDiscordId();
 			

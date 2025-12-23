@@ -161,6 +161,13 @@ public class LinkCommand implements SlashCommand {
                             plugin.checkAndDeleteDiscordRole(player, finalId);
                     	}
                     }
+                    
+                    if(plugin.getConfig().getBoolean("add-specific-roles-on-link")) {
+                    	for(String roleId : plugin.getConfig().getStringList("roles-to-add-on-link")) {
+            	            Long finalId = Long.parseLong(roleId);
+                            plugin.checkAndAddDiscordRole(player, finalId);
+                    	}
+                    }
 
                     MessageEmbed embed = builder.build();
                     e.getHook().sendMessage(MessageCreateData.fromEmbeds(embed)).setEphemeral(true).queue();
