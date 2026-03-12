@@ -55,30 +55,32 @@ public class PlayerUtils {
 	}
 	
 	public void processPlayerVerifications(Player player) {
-		LinksManager ges = plugin.getLinksManager();
-		if(ges.isPlayerLinked(player.getUniqueId())) {
-			if(!roles.isEmpty()) {
-				for(Long role : roles.keySet()) {
-					if(player.hasPermission(roles.get(role))) {
-		                plugin.checkAndAddDiscordRole(player, role);
-					} else {
-		                plugin.checkAndDeleteDiscordRole(player, role);
+		Bukkit.getScheduler().runTask(plugin, () -> {
+			LinksManager ges = plugin.getLinksManager();
+			if(ges.isPlayerLinked(player.getUniqueId())) {
+				if(!roles.isEmpty()) {
+					for(Long role : roles.keySet()) {
+						if(player.hasPermission(roles.get(role))) {
+			                plugin.checkAndAddDiscordRole(player, role);
+						} else {
+			                plugin.checkAndDeleteDiscordRole(player, role);
+						}
 					}
 				}
+			    DiscordPlayerLink link = ges.getLinkFor(player.getUniqueId());
+			    boolean isBoosting = plugin.playerIsBooster(player);
+			    
+			    if(isBoosting && !link.isBoosting()) {
+			    	link.setBoosting(true);
+			    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, true);
+			    	Bukkit.getServer().getPluginManager().callEvent(event);
+			    } else if(!isBoosting && link.isBoosting()) {
+			    	link.setBoosting(false);
+			    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, false);
+			    	Bukkit.getServer().getPluginManager().callEvent(event);
+			    }
 			}
-		    DiscordPlayerLink link = ges.getLinkFor(player.getUniqueId());
-		    boolean isBoosting = plugin.playerIsBooster(player);
-		    
-		    if(isBoosting && !link.isBoosting()) {
-		    	link.setBoosting(true);
-		    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, true);
-		    	Bukkit.getServer().getPluginManager().callEvent(event);
-		    } else if(!isBoosting && link.isBoosting()) {
-		    	link.setBoosting(false);
-		    	DiscordBoosterStatusChangeEvent event = new DiscordBoosterStatusChangeEvent(player, false);
-		    	Bukkit.getServer().getPluginManager().callEvent(event);
-		    }
-		}
+		});
 	}
 
 	public void removeAllLinkedRoles(OfflinePlayer player) {        

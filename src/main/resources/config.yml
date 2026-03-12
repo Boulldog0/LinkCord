@@ -111,7 +111,12 @@ add-specific-roles-on-unlink: false
 # English: List of roles to add to the player when unlinking their account.
 roles-to-set-on-unlink:
   - '00000000000'
+  
+remove-specific-roles-on-unlink: false
 
+roles-to-remove-on-unlink:
+  - '00000000000'
+  
 # Français : Si vrai, supprime des rôles spécifiques lorsque le joueur lie son compte.
 # English: If true, removes specific roles when the player links their account.
 remove-specific-roles-on-link: false
@@ -120,15 +125,10 @@ remove-specific-roles-on-link: false
 # English: List of roles to remove from the player when linking their account.
 roles-to-remove-on-link:
   - '00000000000'
-  
+    
 add-specific-roles-on-link: false
 
 roles-to-add-on-link:
-  - '00000000000'
-  
-remove-specific-roles-on-unlink: false
-
-roles-to-remove-on-unlink:
   - '00000000000'
 
 messages:

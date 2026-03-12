@@ -39,17 +39,16 @@ public class DiscordBot extends ListenerAdapter {
     private JDA jda;
     private final LinkCord plugin;
     
-    
     private LinksManager ges;
     private BotExtension extension; 
-    private int guildId;
+    private long guildId;
     private boolean updateNickname;
 
     public DiscordBot(LinkCord plugin) {
         this.plugin = plugin;
         
         ges = plugin.getLinksManager();
-        guildId = plugin.getConfig().getInt("discord.guild-id");
+        guildId = Long.parseLong(plugin.getConfig().getString("discord.guild-id"));
         updateNickname = plugin.getConfig().getBoolean("update-discord-user-username");
     }
 
