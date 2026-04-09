@@ -231,6 +231,7 @@ public class LinksManager {
     	link.setDiscordId(discordAccountId);
     	link.setBoosting(isBooster);
     	link.setDiscordTag(discordTag);
+    	link.setBoosterCooldownExpireTime(System.currentTimeMillis());
     	
     	links.put(player.getUniqueId(), link);
     	savePlayer(player.getUniqueId());
